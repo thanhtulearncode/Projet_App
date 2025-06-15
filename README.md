@@ -44,17 +44,17 @@ npm install
 
 ## ▶️ Exécution du Projet
 
-1. **Lancer le backend :**
+1. **Lancer le terminal 1 (backend) :**
 
 ```bash
 cd backend
 uvicorn api:app --reload --port 8000
 ```
 
-2. **Lancer le frontend :**
+2. **Lancer le terminal 2 (frontend) :**
 
 ```bash
-cd ../frontend
+cd frontend
 npm start
 ```
 
