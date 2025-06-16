@@ -95,3 +95,23 @@ def move_square(data: dict):
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+@app.post("/attack_pion")
+def attack_pion_api(data: dict):
+    try:
+        start_row = data['start_row']
+        start_col = data['start_col']
+        end_row = data['end_row']
+        end_col = data['end_col']
+        captured_dest = data.get('captured_dest')  # [x, y] ou None
+        print("API /attack_pion params:", start_row, start_col, end_row, end_col, captured_dest)
+        success, captured, captured_valid_dest = game.attack_pion(start_row, start_col, end_row, end_col, captured_dest)
+        return {
+            "success": success,
+            "captured": bool(captured),
+            "captured_valid_dest": captured_valid_dest,
+            "current_player": game.current_player,
+            "state": game.get_state()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
