@@ -74,6 +74,16 @@ const Game = ({ settings }) => {
 
   const handleSelectPiece = async (row, col) => {
     // Logique de sélection de pièce
+    if (board[row][col][board[row][col].length - 1].type !== 'Pawn' || board[row][col][board[row][col].length - 1].color !== getPlayerColors()[currentPlayer]) {
+      setSelectedPiece(null);
+      setValidMoves([]);
+      console.log('selectedPiece', selectedPiece);
+      console.log('stack', board[row][col]);
+      console.log('type', board[row][col][board[row][col].length - 1].type);
+      console.log('player', getPlayerColors()[currentPlayer]);
+      setMessage('Sélection invalide, veuillez choisir une pièce de votre couleur');
+      return;
+    }
     setSelectedPiece({ row, col });
     setMessage('Pièce sélectionnée');
     
@@ -83,12 +93,36 @@ const Game = ({ settings }) => {
 
   const handleMove = async (row, col) => {
     // Logique de déplacement simplifiée pour le moment
-    setMessage('Déplacement effectué');
-    setSelectedPiece(null);
-    setValidMoves([]);
+    if (!selectedPiece || !validMoves.some(move => move[0] === row && move[1] === col)) {
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:8000/move', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          start_row: selectedPiece.row,
+          start_col: selectedPiece.col,
+          end_row: row,
+          end_col: col
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setMessage('Déplacement effectué');
+        setSelectedPiece(null);
+        setValidMoves([]);
     
-    // Simuler un changement de joueur
-    setCurrentPlayer(currentPlayer === 'player1' ? 'player2' : 'player1');
+        // Simuler un changement de joueur
+        setCurrentPlayer(currentPlayer === 'player1' ? 'player2' : 'player1');
+        fetchBoard(); // Rafraîchir le plateau
+      }
+    } catch (error) {
+      console.error('Error making move:', error);
+    }
+    
   };
 
   const resetGame = async () => {
