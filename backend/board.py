@@ -1,5 +1,5 @@
-from backend.piece2 import piece
-from backend.pion import pion
+from piece2 import piece
+from pion import pion
 
 class board:
     def __init__(self, taille=8):
@@ -26,7 +26,7 @@ class board:
             return False
 
         # Vérifier si le déplacement est valide
-        if not pion.peut_deplacer_vers(self, x_arrivee, y_arrivee):
+        if not pion.peut_deplacer_vers(self, x_arrivee, y_arrivee, phase=1):
             return False
 
         # Si la case d'arrivée est occupée par une pièce adverse, la capturer
@@ -37,6 +37,9 @@ class board:
         # Déplacer la piece
         cell_depart.retirer_pion()
         cell_arrivee.placer_pion(pion)
+
+        # Exécuter immédiatement la phase 2
+        self.deplacer_epc_phase2(x_arrivee, y_arrivee)
 
         return pion_capture  # Retourner la pièce capturée pour la replacer plus tard
 
