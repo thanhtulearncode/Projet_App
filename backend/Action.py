@@ -1,6 +1,34 @@
 class Action:
-    def __init__(self, board):
-        self.board = board
+    def __init__(self, type_action, start_pos, end_pos):
+        """
+        Initialise une action
+        :param type_action: 'move_pion' ou 'stack_pieces'
+        :param start_pos: (x, y) position de départ
+        :param end_pos: (x, y) position d'arrivée
+        """
+        self.type_action = type_action
+        self.start_pos = start_pos
+        self.end_pos = end_pos
+    
+    def __str__(self):
+        return f"{self.type_action} de {self.start_pos} vers {self.end_pos}"
+    
+    def execute(self, game_engine):
+        """
+        Exécute l'action sur le game_engine
+        :param game_engine: Instance de GameEngine
+        :return: True si l'action a réussi, False sinon
+        """
+        if self.type_action == 'move_pion':
+            return game_engine.move_pion(
+                self.start_pos[0], self.start_pos[1],
+                self.end_pos[0], self.end_pos[1]
+            )[0]  # Retourne le premier élément du tuple (success)
+        else:  # stack_pieces
+            return game_engine.stack_pieces(
+                self.start_pos[0], self.start_pos[1],
+                self.end_pos[0], self.end_pos[1]
+            )
 
     def get_valid_moves(self, x, y):
         valid_moves = []

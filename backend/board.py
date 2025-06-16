@@ -1,5 +1,5 @@
-from backend.piece2 import piece
-from backend.pion import pion
+from piece2 import piece
+from pion import pion
 
 class board:
     def __init__(self, taille=8):
