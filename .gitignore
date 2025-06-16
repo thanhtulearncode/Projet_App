@@ -1,5 +1,5 @@
 # Ignore node_modules
-node_modules/
+frontend/node_modules/
 backend/venv/
 
 # Ignore log files
