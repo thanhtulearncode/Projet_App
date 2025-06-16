@@ -7,6 +7,7 @@ const Game = ({ settings }) => {
   const [validMoves, setValidMoves] = useState([]);
   const [currentPlayer, setCurrentPlayer] = useState('player1');
   const [message, setMessage] = useState('Chargement du jeu...');
+  const [pendingCaptured, setPendingCaptured] = useState(null);
   
   // Définir les couleurs des joueurs en fonction de la paire de couleurs sélectionnée
   const getPlayerColors = () => {
@@ -91,38 +92,104 @@ const Game = ({ settings }) => {
     fetchValidMoves(row, col);
   };
 
+  // Nouvelle version de handleMove qui choisit le bon endpoint
   const handleMove = async (row, col) => {
-    // Logique de déplacement simplifiée pour le moment
     if (!selectedPiece || !validMoves.some(move => move[0] === row && move[1] === col)) {
       return;
     }
-
-    try {
-      const response = await fetch('http://localhost:8000/move', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+    // Vérifie si la case d'arrivée contient un pion adverse
+    const stack = board[row][col];
+    const hasOpponentPawn = stack.some(p => p.type === 'Pawn' && p.color !== getPlayerColors()[currentPlayer]);
+    if (hasOpponentPawn) {
+      // Capture : utilise /attack_pion
+      try {
+        const attackBody = {
           start_row: selectedPiece.row,
           start_col: selectedPiece.col,
           end_row: row,
           end_col: col
-        })
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        setMessage('Déplacement effectué');
-        setSelectedPiece(null);
-        setValidMoves([]);
-    
-        // Simuler un changement de joueur
-        setCurrentPlayer(currentPlayer === 'player1' ? 'player2' : 'player1');
-        fetchBoard(); // Rafraîchir le plateau
+        };
+        console.log('POST /attack_pion', attackBody);
+        const response = await fetch('http://localhost:8000/attack_pion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(attackBody)
+        });
+        const result = await response.json();
+        if (result.success) {
+          if (result.captured && result.captured_valid_dest && result.captured_valid_dest.length > 0) {
+            setPendingCaptured({
+              from: { row: selectedPiece.row, col: selectedPiece.col },
+              to: { row, col },
+              validDest: result.captured_valid_dest
+            });
+            setValidMoves(result.captured_valid_dest);
+            setMessage('Sélectionnez une case pour déplacer le pion capturé');
+            setSelectedPiece(null);
+            return;
+          }
+          setMessage('Déplacement effectué');
+          setSelectedPiece(null);
+          setValidMoves([]);
+          setCurrentPlayer(currentPlayer === 'player1' ? 'player2' : 'player1');
+          fetchBoard();
+        }
+      } catch (error) {
+        setMessage('Erreur lors de la capture');
       }
-    } catch (error) {
-      console.error('Error making move:', error);
+    } else {
+      // Déplacement simple : utilise /move_pion
+      try {
+        const response = await fetch('http://localhost:8000/move_pion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            start_row: selectedPiece.row,
+            start_col: selectedPiece.col,
+            end_row: row,
+            end_col: col
+          })
+        });
+        const result = await response.json();
+        if (result.success) {
+          setMessage('Déplacement effectué');
+          setSelectedPiece(null);
+          setValidMoves([]);
+          setCurrentPlayer(currentPlayer === 'player1' ? 'player2' : 'player1');
+          fetchBoard();
+        }
+      } catch (error) {
+        setMessage('Erreur lors du déplacement');
+      }
     }
-    
+  };
+
+  // Gestion du choix de la destination du pion capturé
+  const handleCapturedMove = async (row, col) => {
+    if (!pendingCaptured || !pendingCaptured.validDest.some(move => move[0] === row && move[1] === col)) return;
+    try {
+      const body = {
+        start_row: pendingCaptured.from.row,
+        start_col: pendingCaptured.from.col,
+        end_row: pendingCaptured.to.row,
+        end_col: pendingCaptured.to.col,
+        captured_dest: [row, col]
+      };
+      console.log('POST /attack_pion (choix position pion adverse)', body);
+      const response = await fetch('http://localhost:8000/attack_pion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const result = await response.json();
+      setPendingCaptured(null);
+      setValidMoves([]);
+      setMessage('Pion capturé déplacé !');
+      setCurrentPlayer(currentPlayer === 'player1' ? 'player2' : 'player1');
+      fetchBoard();
+    } catch (error) {
+      setMessage('Erreur lors du déplacement du pion capturé');
+    }
   };
 
   const resetGame = async () => {
@@ -162,6 +229,9 @@ const Game = ({ settings }) => {
     if (selectedPiece && validMoves.some(move => move[0] === row && move[1] === col)) {
       // Si une pièce est sélectionnée et la case cliquée est un coup valide, on effectue le move
       await handleMove(row, col);
+    } else if (pendingCaptured && pendingCaptured.validDest.some(dest => dest[0] === row && dest[1] === col)) {
+      // Si un pion est en attente d'être capturé et la case cliquée est une destination valide, on effectue le déplacement du pion capturé
+      await handleCapturedMove(row, col);
     } else {
       // Sinon, on sélectionne la pièce
       await handleSelectPiece(row, col);

@@ -174,7 +174,7 @@ class GameEngine:
         return True
 
     def move_pion(self, start_x, start_y, end_x, end_y):
-        """Déplace un pion rond selon les règles, gère la capture spéciale."""
+        """Déplace un pion rond sans capture spéciale."""
         if not self.board[start_x][start_y]:
             return False, None
         piece = self.board[start_x][start_y][-1]
@@ -183,30 +183,67 @@ class GameEngine:
         valid_moves = self.get_pawn_moves(piece, start_x, start_y)
         if (end_x, end_y) not in valid_moves:
             return False, None
-        # Capture spéciale
-        captured = None
-        for p in self.board[end_x][end_y]:
-            if getattr(p, 'name', None) == 'Pawn' and p.color != piece.color:
-                captured = p
-                # Cherche une case libre pour déplacer le pion capturé
-                for i in range(8):
-                    for j in range(8):
-                        if i == end_x and j == end_y:
-                            continue
-                        if self.board[i][j] and not any(getattr(pp, 'name', None) == 'Pawn' for pp in self.board[i][j]):
-                            self.board[i][j].append(captured)
-                            self.board[end_x][end_y].remove(captured)
-                            break
-                    else:
-                        continue
-                    break
-                break
+        # Vérifie qu'il n'y a pas de pion adverse à la destination
+        if any(getattr(p, 'name', None) == 'Pawn' and p.color != piece.color for p in self.board[end_x][end_y]):
+            return False, None
         # Déplace le pion
         self.board[start_x][start_y].remove(piece)
         piece.position = (end_x, end_y)
         self.board[end_x][end_y].append(piece)
         self.current_player = 'black' if self.current_player == 'white' else 'white'
-        return True, captured
+        return True, None
+
+    def attack_pion(self, start_x, start_y, end_x, end_y, captured_dest=None):
+        print("attack_pion backend:", start_x, start_y, end_x, end_y, captured_dest)
+        if not self.board[start_x][start_y]:
+            print("[DEBUG] Pas de pion à la position de départ")
+            return False, None, []
+        piece = self.board[start_x][start_y][-1]
+        if getattr(piece, 'name', None) != 'Pawn':
+            print("[DEBUG] La pièce de départ n'est pas un pion")
+            return False, None, []
+        valid_moves = self.get_pawn_moves(piece, start_x, start_y)
+        if (end_x, end_y) not in valid_moves:
+            print(f"[DEBUG] ({end_x},{end_y}) n'est pas un coup valide pour ce pion : {valid_moves}")
+            return False, None, []
+        # Vérifie qu'il y a bien un pion adverse à la destination
+        captured = None
+        for p in self.board[end_x][end_y]:
+            if getattr(p, 'name', None) == 'Pawn' and p.color != piece.color:
+                captured = p
+                if captured_dest is not None:
+                    dest_x, dest_y = captured_dest
+                    if not (0 <= dest_x < 8 and 0 <= dest_y < 8):
+                        print("[DEBUG] Destination hors plateau !")
+                        return False, None, []
+                    if not self.board[dest_x][dest_y]:
+                        print("[DEBUG] Destination vide !")
+                        return False, None, []
+                    if any(getattr(pp, 'name', None) == 'Pawn' for pp in self.board[dest_x][dest_y]):
+                        print("[DEBUG] Destination déjà occupée par un pion !")
+                        return False, None, []
+                    self.board[end_x][end_y].remove(captured)
+                    self.board[dest_x][dest_y].append(captured)
+                else:
+                    captured_valid_dest = []
+                    for i in range(8):
+                        for j in range(8):
+                            if (i, j) == (end_x, end_y):
+                                continue
+                            if self.board[i][j] and not any(getattr(pp, 'name', None) == 'Pawn' for pp in self.board[i][j]):
+                                captured_valid_dest.append((i, j))
+                    print("[DEBUG] Cases valides pour le pion capturé:", captured_valid_dest)
+                    return True, captured, captured_valid_dest
+                break
+        if not captured:
+            print("[DEBUG] Pas de pion adverse à la destination !")
+            return False, None, []
+        # Déplace le pion attaquant
+        self.board[start_x][start_y].remove(piece)
+        piece.position = (end_x, end_y)
+        self.board[end_x][end_y].append(piece)
+        self.current_player = 'black' if self.current_player == 'white' else 'white'
+        return True, captured, []
 
     def can_stack(self, color):
         """Vérifie si le joueur peut empiler une pile carrée."""
