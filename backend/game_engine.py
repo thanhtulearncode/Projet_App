@@ -1,4 +1,4 @@
-from piece import *
+from Piece import *
 from Action import *
 
 class GameEngine:
