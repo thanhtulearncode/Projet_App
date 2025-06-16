@@ -32,7 +32,7 @@ async def make_move(data: dict):
         end_row = data['end_row']
         end_col = data['end_col']
         
-        success, captured = game.move_piece(start_row, start_col, end_row, end_col)
+        success, captured = game.move_pion(start_row, start_col, end_row, end_col)
         return {
             "success": success,
             "captured": captured,

@@ -1,4 +1,4 @@
-from backend.piece import piece
+from backend.piece2 import piece
 from backend.pion import pion
 
 class board:
