@@ -59,7 +59,7 @@ class GameEngine:
             if piece.name == "Square":
                 valid_moves = self.get_square_moves(piece, x, y)
             elif piece.name == "Pawn":
-                valid_moves = self.get_pawn_moves(piece, x, y, long_range=1)
+                valid_moves = self.get_pawn_moves(piece, x, y, long_range=None)
             print(f"[LOG] Coups valides pour {piece.name} ({piece.color}) en ({x},{y}) : {valid_moves}")
         else:
             print(f"[LOG] Case ({x},{y}) vide.")
@@ -69,26 +69,47 @@ class GameEngine:
         directions = []
         for i in range(x + 1, 8):
             if self.board[i][y]:
-                directions.append((i, y))
-                break
+                if self.board[i][y][-1].name == "Pawn":
+                    break
+                elif len(self.board[i][y]) + len(self.board[x][y]) > 5:
+                    break
+                else:
+                    directions.append((i, y))
+                    break
         for i in range(x - 1, -1, -1):
             if self.board[i][y]:
-                directions.append((i, y))
-                break
+                if self.board[i][y][-1].name == "Pawn":
+                    break
+                elif len(self.board[i][y]) + len(self.board[x][y]) > 5:
+                    break
+                else:
+                    directions.append((i, y))
+                    break
         for j in range(y + 1, 8):
             if self.board[x][j]:
-                directions.append((x, j))
-                break
+                if self.board[x][j][-1].name == "Pawn":
+                    break
+                elif len(self.board[x][j]) + len(self.board[x][y]) > 5:
+                    break
+                else:
+                    directions.append((x, j))
+                    break
         for j in range(y - 1, -1, -1):
             if self.board[x][j]:
-                directions.append((x, j))
-                break
+                if self.board[x][j][-1].name == "Pawn":
+                    break
+                elif len(self.board[x][j]) + len(self.board[x][y]) > 5:
+                    break
+                else:
+                    directions.append((x, j))
+                    break
         return directions
 
     def get_pawn_moves(self, piece, x, y, long_range=None):
         # Le nombre de cases max = nombre de pièces carrées sous le pion
         if long_range is None:
             long_range = sum(1 for p in self.board[x][y] if getattr(p, 'name', None) == 'Square')
+            print(f"[LOG] Long range for Pawn at ({x},{y}): {long_range}")
         directions = []
         for dx, dy in [(-1,0), (1,0), (0,-1), (0,1)]:  # haut, bas, gauche, droite
             nx, ny = x, y
@@ -100,7 +121,6 @@ class GameEngine:
                     break  # hors de la grille
                 # On saute les cases vides
                 if not self.board[nx][ny]:
-                    steps += 1
                     continue
                 # Si la case contient un pion allié, on ne peut pas s'arrêter
                 if any(getattr(p, 'name', None) == 'Pawn' and p.color == piece.color for p in self.board[nx][ny]):
@@ -113,7 +133,7 @@ class GameEngine:
                     break
                 # Sinon, on peut s'arrêter ici
                 directions.append((nx, ny))
-                break
+                steps += 1
         return directions
 
     def move_piece(self, start_row, start_col, end_row, end_col):
@@ -137,43 +157,54 @@ class GameEngine:
         return True, captured
 
     def get_valid_stack_moves(self, src_x, src_y):
-        """Retourne les cases cibles valides pour empiler depuis (src_x, src_y)"""
-        # Vérifier qu'il y a un EPC à déplacer et pas de pion
+        """Retourne les cases cibles valides pour empiler depuis (src_x, src_y) selon la logique de get_square_moves"""
         if not self.board[src_x][src_y]:
             print(f"[LOG] Pas d'EPC en ({src_x},{src_y})")
             return []
-            
         if any(getattr(p, 'name', None) == 'Pawn' for p in self.board[src_x][src_y]):
             print(f"[LOG] Case avec pion en ({src_x},{src_y}), impossible de déplacer l'EPC")
-            return []  # Pas de déplacement si un pion est présent
-            
+            return []
         if not any(getattr(p, 'name', None) == 'Square' for p in self.board[src_x][src_y]):
             print(f"[LOG] Pas de pièce carrée en ({src_x},{src_y})")
-            return []  # Pas de pièce carrée à déplacer
-        
+            return []
         moves = []
-        # L'EPC ne peut se déplacer que d'une case orthogonalement
-        for dx, dy in [(-1,0), (1,0), (0,-1), (0,1)]:
-            nx, ny = src_x + dx, src_y + dy
-            
-            # Vérifier si la nouvelle position est dans les limites du plateau
-            if 0 <= nx < 8 and 0 <= ny < 8:
-                # Ne peut se déplacer que vers une case contenant au moins une pièce carrée
-                if not self.board[nx][ny] or not any(getattr(p, 'name', None) == 'Square' for p in self.board[nx][ny]):
-                    continue
-                    
-                # Ne peut pas se déplacer vers une case avec un pion
-                if any(getattr(p, 'name', None) == 'Pawn' for p in self.board[nx][ny]):
-                    continue
-                    
-                # Vérifier que l'empilement ne dépasse pas 5
-                pile_cible = [p for p in self.board[nx][ny] if getattr(p, 'name', None) == 'Square']
-                pile_source = [p for p in self.board[src_x][src_y] if getattr(p, 'name', None) == 'Square']
-                
-                if len(pile_cible) + len(pile_source) <= 5:
-                    moves.append((nx, ny))
-                    print(f"[LOG] Mouvement valide: ({src_x},{src_y}) -> ({nx},{ny})")
-                    
+        # Utilise la même logique que get_square_moves
+        for i in range(src_x + 1, 8):
+            if self.board[i][src_y]:
+                if any(getattr(p, 'name', None) == 'Square' for p in self.board[i][src_y]) and not any(getattr(p, 'name', None) == 'Pawn' for p in self.board[i][src_y]):
+                    pile_cible = [p for p in self.board[i][src_y] if getattr(p, 'name', None) == 'Square']
+                    pile_source = [p for p in self.board[src_x][src_y] if getattr(p, 'name', None) == 'Square']
+                    if len(pile_cible) + len(pile_source) <= 5:
+                        moves.append((i, src_y))
+                        print(f"[LOG] Mouvement valide: ({src_x},{src_y}) -> ({i},{src_y})")
+                break
+        for i in range(src_x - 1, -1, -1):
+            if self.board[i][src_y]:
+                if any(getattr(p, 'name', None) == 'Square' for p in self.board[i][src_y]) and not any(getattr(p, 'name', None) == 'Pawn' for p in self.board[i][src_y]):
+                    pile_cible = [p for p in self.board[i][src_y] if getattr(p, 'name', None) == 'Square']
+                    pile_source = [p for p in self.board[src_x][src_y] if getattr(p, 'name', None) == 'Square']
+                    if len(pile_cible) + len(pile_source) <= 5:
+                        moves.append((i, src_y))
+                        print(f"[LOG] Mouvement valide: ({src_x},{src_y}) -> ({i},{src_y})")
+                break
+        for j in range(src_y + 1, 8):
+            if self.board[src_x][j]:
+                if any(getattr(p, 'name', None) == 'Square' for p in self.board[src_x][j]) and not any(getattr(p, 'name', None) == 'Pawn' for p in self.board[src_x][j]):
+                    pile_cible = [p for p in self.board[src_x][j] if getattr(p, 'name', None) == 'Square']
+                    pile_source = [p for p in self.board[src_x][src_y] if getattr(p, 'name', None) == 'Square']
+                    if len(pile_cible) + len(pile_source) <= 5:
+                        moves.append((src_x, j))
+                        print(f"[LOG] Mouvement valide: ({src_x},{src_y}) -> ({src_x},{j})")
+                break
+        for j in range(src_y - 1, -1, -1):
+            if self.board[src_x][j]:
+                if any(getattr(p, 'name', None) == 'Square' for p in self.board[src_x][j]) and not any(getattr(p, 'name', None) == 'Pawn' for p in self.board[src_x][j]):
+                    pile_cible = [p for p in self.board[src_x][j] if getattr(p, 'name', None) == 'Square']
+                    pile_source = [p for p in self.board[src_x][src_y] if getattr(p, 'name', None) == 'Square']
+                    if len(pile_cible) + len(pile_source) <= 5:
+                        moves.append((src_x, j))
+                        print(f"[LOG] Mouvement valide: ({src_x},{src_y}) -> ({src_x},{j})")
+                break
         print(f"[LOG] Mouvements valides pour EPC en ({src_x},{src_y}): {moves}")
         return moves
 
@@ -212,15 +243,15 @@ class GameEngine:
             print("[LOG] Pas de pièce carrée à la destination")
             return False
         
-        # Vérifier que les cases sont adjacentes
-        if abs(src_x - dst_x) + abs(src_y - dst_y) != 1:
-            print("[LOG] Les cases ne sont pas adjacentes")
+        # Vérifier que la destination fait partie des coups valides
+        valid_stack_moves = self.get_valid_stack_moves(src_x, src_y)
+        if (dst_x, dst_y) not in valid_stack_moves:
+            print("[LOG] La destination n'est pas un coup valide d'empilement")
             return False
         
         # Vérifier que l'empilement ne dépasse pas 5
         pile_source = [p for p in self.board[src_x][src_y] if getattr(p, 'name', None) == 'Square']
         pile_cible = [p for p in self.board[dst_x][dst_y] if getattr(p, 'name', None) == 'Square']
-        
         if len(pile_source) + len(pile_cible) > 5:
             print("[LOG] L'empilement dépasserait 5 pièces")
             return False
