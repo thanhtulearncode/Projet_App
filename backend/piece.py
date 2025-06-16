@@ -1,48 +1,27 @@
-# case.py
-class piece:
-    def __init__(self):
-        self.epc = 1  # Empilement de pièces carrées (1-5)
-        self.pion = None  # Reference to the pion on this piece
+class Piece:
+    def __init__(self, name: str, color: str, position: tuple):
+        self.name = name
+        self.color = color
+        self.position = position
 
-    def est_vide(self):
-        return self.epc == 0
+    def move(self, new_position: tuple):
+        self.position = new_position
 
-    def est_libre(self):
-        return self.pion is None
+    def __repr__(self):
+        return f"{self.color} {self.name} at {self.position}"
+    
+class Square(Piece):
+    def __init__(self, color: str, position: tuple):
+        super().__init__("Square", color, position)
 
-    def est_occupee(self):
-        return self.pion is not None
+    def can_move(self, new_position: tuple):
+        # Logic for square movement
+        return True  # Placeholder logic
 
-    def est_building(self):
-        return self.epc == 5
+class Pawn(Piece):
+    def __init__(self, color: str, position: tuple):
+        super().__init__("Pawn", color, position)
 
-    def ajouter_epc(self, quantite):
-        # Vérifier si l'ajout ne dépasse pas la limite de 5
-        if self.epc + quantite <= 5:
-            self.epc += quantite
-            return True
-        return False
-
-    def retirer_epc(self, quantite):
-        if self.epc - quantite >= 0:
-            self.epc -= quantite
-            return True
-        return False
-
-    def placer_pion(self, pion):
-        if self.est_libre():
-            self.pion = pion
-            pion.position = self
-            return True
-        return False
-
-    def retirer_pion(self):
-        pion = self.pion
-        self.pion = None
-        if pion:
-            pion.position = None
-        return pion
-
-    def afficher(self):
-        p = self.pion.couleur if self.pion else ' '
-        return f"{self.epc}{p}"
+    def can_move(self, new_position: tuple):
+        # Logic for pawn movement
+        return True  # Placeholder logic
