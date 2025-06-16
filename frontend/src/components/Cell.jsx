@@ -1,6 +1,12 @@
 import React from 'react';
 import Piece from './Piece';
 
+const mapType = (type) => {
+    if (type === 'Square') return 'square';
+    if (type === 'Pawn') return 'round';
+    return type;
+};
+
 const Cell = ({ stack, onClick, isSelected, isValidMove }) => {
     return (
         <div 
@@ -26,7 +32,7 @@ const Cell = ({ stack, onClick, isSelected, isValidMove }) => {
                     }}
                 >
                     <Piece 
-                        type={piece.type} 
+                        type={mapType(piece.type)} 
                         color={piece.color} 
                         height={piece.height}
                         stackIndex={index}
@@ -35,9 +41,10 @@ const Cell = ({ stack, onClick, isSelected, isValidMove }) => {
                 </div>
             ))}
             
-            {stack.filter(piece => piece.type === 'square').length > 0 && (
+            {/* Badge de hauteur de pile carrée */}
+            {stack.filter(piece => mapType(piece.type) === 'square').length > 0 && (
                 <span className="stack-badge">
-                    {stack.filter(piece => piece.type === 'square').length}
+                    {stack.filter(piece => mapType(piece.type) === 'square').length}
                 </span>
             )}
         </div>
