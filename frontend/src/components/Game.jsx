@@ -13,6 +13,8 @@ const Game = ({ settings }) => {
   const [selectedEPC, setSelectedEPC] = useState(null);
   const [validEPCMoves, setValidEPCMoves] = useState([]);
   const [lastPawnPosition, setLastPawnPosition] = useState(null);
+  const [gameOver, setGameOver] = useState(false);
+  const [winner, setWinner] = useState(null);
 
   // Définir les couleurs des joueurs
   const getPlayerColors = () => {
@@ -308,8 +310,37 @@ const Game = ({ settings }) => {
     }
   };
 
+  // Vérifie la fin du jeu
+  const checkGameOver = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/is_game_over');
+      if (!response.ok) throw new Error('Erreur réseau');
+      const data = await response.json();
+      if (data.game_over) {
+        setGameOver(true);
+        setWinner(data.winner);
+        setMessage(
+          data.winner === 'draw'
+            ? 'Match nul !'
+            : `Victoire des ${getColorName(data.winner)} !`
+        );
+      } else {
+        setGameOver(false);
+        setWinner(null);
+      }
+    } catch (error) {
+      // Ne rien faire, on garde l'état précédent
+    }
+  };
+
+  // Appeler checkGameOver après chaque action importante
+  useEffect(() => {
+    checkGameOver();
+  }, [board]);
+
   // Clic sur case
   const handleCellClick = async (row, col) => {
+    if (gameOver) return;
     if (gamePhase === 'move_pawn') {
       if (selectedPiece && validMoves.some(move => move[0] === row && move[1] === col)) {
         await handleMove(row, col);
@@ -373,6 +404,13 @@ const Game = ({ settings }) => {
         />
       ) : (
         <p>Chargement du plateau...</p>
+      )}
+      {gameOver && (
+        <div className="game-over">
+          <h2>Fin de la partie</h2>
+          <p>{winner === 'draw' ? 'Match nul !' : `Victoire des ${getColorName(winner)} !`}</p>
+          <button onClick={resetGame}>Rejouer</button>
+        </div>
       )}
     </div>
   );

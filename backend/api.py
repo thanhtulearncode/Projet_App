@@ -115,3 +115,10 @@ def attack_pion_api(data: dict):
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/is_game_over")
+def is_game_over():
+    # Utilise la méthode check_game_over existante
+    if game.check_game_over():
+        return {"game_over": True, "winner": game.get_winner()}
+    return {"game_over": False, "winner": None}
