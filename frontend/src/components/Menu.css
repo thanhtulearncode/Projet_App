@@ -2,8 +2,7 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: #111;
-  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  background: linear-gradient(120deg, #232526 0%, #414345 100%);
   overflow-x: hidden;
 }
 
@@ -11,227 +10,175 @@ body {
   position: fixed;
   top: 0; left: 0; width: 100vw; height: 100vh;
   z-index: 0;
-  background: #1111110b;
+  background: linear-gradient(120deg, #232526 0%, #414345 100%);
   overflow: hidden;
 }
 
-.animated-bg::before,
-.animated-bg::after {
+.animated-bg::before {
   content: "";
   position: absolute;
-  border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.35;
-  animation: float 14s ease-in-out infinite alternate;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 20% 20%, #ffd20044 0%, transparent 60%),
+              radial-gradient(circle at 80% 80%, #43e97b33 0%, transparent 60%);
+  animation: moveBg 10s linear infinite alternate;
+  z-index: 1;
 }
 
-.animated-bg::before {
-  width: 700px; height: 700px;
-  left: -250px; top: -180px;
-  background: radial-gradient(circle, #ffd200 0%, transparent 80%);
-  animation-delay: 0s;
-}
-
-.animated-bg::after {
-  width: 600px; height: 600px;
-  right: -200px; bottom: -120px;
-  background: radial-gradient(circle, #43e97b 0%, transparent 80%);
-  animation-delay: 3s;
-}
-
-@keyframes float {
-  0% { transform: translateY(0) scale(1);}
-  100% { transform: translateY(60px) scale(1.12);}
+@keyframes moveBg {
+  0% { transform: translate(0,0);}
+  100% { transform: translate(-10%, -10%);}
 }
 
 .game-menu {
-  position: relative;
-  z-index: 2;
   min-height: 100vh;
+  background: linear-gradient(135deg, #232526 0%, #414345 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   padding-top: 60px;
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+}
+
+.game-menu h1 {
+  font-size: 3rem;
+  color: #fff;
+  letter-spacing: 4px;
+  margin-bottom: 40px;
+  text-shadow: 0 4px 24px #000a;
 }
 
 .menu-glass {
-  background: rgba(30, 32, 34, 0.85);
-  box-shadow: 0 8px 32px 0 rgba(31,38,135,0.25), 0 1.5px 8px #0006;
-  backdrop-filter: blur(22px) saturate(1.2);
-  -webkit-backdrop-filter: blur(22px) saturate(1.2);
-  border-radius: 36px;
-  border: 1.5px solid rgba(255,255,255,0.10);
-  padding: 56px 40px 40px 40px;
+  background: rgba(255,255,255,0.13);
+  box-shadow: 0 8px 32px 0 rgba(31,38,135,0.37);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 32px;
+  border: 1.5px solid rgba(255,255,255,0.18);
+  padding: 48px 36px 36px 36px;
   margin-top: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 350px;
-  max-width: 95vw;
-}
-
-.game-menu h1 {
-  font-size: 3.4rem;
-  color: #fff;
-  letter-spacing: 7px;
-  margin-bottom: 38px;
-  text-shadow: 0 6px 32px #000a, 0 1px 0 #ffd200;
-  font-weight: 900;
-  background: linear-gradient(90deg, #ffd200 30%, #43e97b 70%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  min-width: 340px;
 }
 
 .menu-buttons {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 22px;
   width: 340px;
   align-items: stretch;
 }
 
 .menu-button {
-  padding: 20px 0;
-  font-size: 1.3rem;
-  font-weight: 700;
+  padding: 18px 0;
+  font-size: 1.25rem;
+  font-weight: 600;
   border: none;
-  border-radius: 22px;
-  background: rgba(34, 36, 38, 0.97);
-  color: #fff;
-  box-shadow: 0 2px 18px #0006, 0 1.5px 8px #ffd20022;
+  border-radius: 14px;
+  background: linear-gradient(90deg, #ffb347 0%, #ffcc33 100%);
+  color: #232526;
+  box-shadow: 0 2px 16px #0002;
   cursor: pointer;
-  transition: 
-    transform 0.18s cubic-bezier(.4,2,.6,1),
-    box-shadow 0.18s,
-    background 0.22s,
-    color 0.22s;
+  transition: transform 0.12s, box-shadow 0.12s, background 0.2s;
   outline: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  letter-spacing: 1.5px;
-  position: relative;
-  overflow: hidden;
-  backdrop-filter: blur(2px);
 }
 
 .menu-button i {
-  font-size: 1.4em;
-}
-
-.menu-button::after {
-  content: "";
-  position: absolute;
-  left: 0; top: 0; width: 100%; height: 100%;
-  background: linear-gradient(120deg, #ffd20055 0%, #43e97b33 100%);
-  opacity: 0;
-  transition: opacity 0.3s;
-  z-index: 0;
-  pointer-events: none;
+  font-size: 1.3em;
 }
 
 .menu-button:hover, .menu-button:focus {
-  transform: translateY(-4px) scale(1.06);
-  box-shadow: 0 12px 40px #ffd20077, 0 1.5px 8px #43e97b55;
-  color: #ffd200;
-  background: rgba(34, 36, 38, 1);
-}
-
-.menu-button:hover::after, .menu-button:focus::after {
-  opacity: 0.22;
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 24px #0003;
+  background: linear-gradient(90deg, #ffcc33 0%, #ffb347 100%);
 }
 
 .play-button {
-  background: linear-gradient(90deg, #232526 0%, #ffd200cc 100%);
+  background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
   color: #232526;
-  box-shadow: 0 2px 18px #ffd20033, 0 1.5px 8px #ffd20033;
 }
 
 .play-button:hover {
-  background: linear-gradient(90deg, #ffd200cc 0%, #232526 100%);
-  color: #fff;
+  background: linear-gradient(90deg, #38f9d7 0%, #43e97b 100%);
 }
 
 .rules-button {
-  background: linear-gradient(90deg, #232526 0%, #764ba2cc 100%);
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
   color: #fff;
 }
 
 .rules-button:hover {
-  background: linear-gradient(90deg, #764ba2cc 0%, #232526 100%);
-  color: #ffd200;
+  background: linear-gradient(90deg, #764ba2 0%, #667eea 100%);
 }
 
 .settings-button {
-  background: linear-gradient(90deg, #232526 0%, #ffd200cc 100%);
-  color: #ffd200;
+  background: linear-gradient(90deg, #f7971e 0%, #ffd200 100%);
+  color: #232526;
 }
 
 .settings-button:hover {
-  background: linear-gradient(90deg, #ffd200cc 0%, #232526 100%);
-  color: #fff;
+  background: linear-gradient(90deg, #ffd200 0%, #f7971e 100%);
 }
 
 .mode-button {
-  background: linear-gradient(90deg, #232526 0%, #b91d73cc 100%);
+  background: linear-gradient(90deg, #f953c6 0%, #b91d73 100%);
   color: #fff;
 }
 
 .mode-button:hover {
-  background: linear-gradient(90deg, #b91d73cc 0%, #232526 100%);
-  color: #ffd200;
+  background: linear-gradient(90deg, #b91d73 0%, #f953c6 100%);
 }
 
 .color-select-button {
-  background: linear-gradient(90deg, #232526 0%, #185a9dcc 100%);
+  background: linear-gradient(90deg, #43cea2 0%, #185a9d 100%);
   color: #fff;
 }
 
 .color-select-button:hover {
-  background: linear-gradient(90deg, #185a9dcc 0%, #232526 100%);
-  color: #ffd200;
+  background: linear-gradient(90deg, #185a9d 0%, #43cea2 100%);
 }
 
 .color-button.black-white {
-  background: linear-gradient(90deg, #232526cc 0%, #fff9 100%);
-  color: #fff;
+  background: linear-gradient(90deg, #232526 0%, #fff 100%);
+  color: #232526;
 }
 
 .color-button.red-green {
-  background: linear-gradient(90deg, #ff5858cc 0%, #232526 100%);
+  background: linear-gradient(90deg, #ff5858 0%, #43e97b 100%);
   color: #fff;
 }
 
 .color-button.orange-blue {
-  background: linear-gradient(90deg, #ff9966cc 0%, #232526 100%);
+  background: linear-gradient(90deg, #ff9966 0%, #36d1c4 100%);
   color: #fff;
 }
 
 .difficulty-button.easy {
-  background: linear-gradient(90deg, #232526 0%, #78ffd6cc 100%);
-  color: #fff;
+  background: linear-gradient(90deg, #a8ff78 0%, #78ffd6 100%);
+  color: #232526;
 }
 
 .difficulty-button.medium {
-  background: linear-gradient(90deg, #232526 0%, #ffd200cc 100%);
-  color: #fff;
+  background: linear-gradient(90deg, #f7971e 0%, #ffd200 100%);
+  color: #232526;
 }
 
 .difficulty-button.hard {
-  background: linear-gradient(90deg, #232526 0%, #b91d73cc 100%);
+  background: linear-gradient(90deg, #f953c6 0%, #b91d73 100%);
   color: #fff;
 }
 
 .back-button {
-  background: rgba(34,36,38,0.8);
+  background: linear-gradient(90deg, #232526 0%, #414345 100%);
   color: #fff;
   border: 1px solid #fff3;
 }
 
 .back-button:hover {
-  background: rgba(34,36,38,1);
+  background: linear-gradient(90deg, #414345 0%, #232526 100%);
   color: #ffd200;
 }
 
@@ -242,9 +189,4 @@ body {
   letter-spacing: 2px;
   font-size: 1.5rem;
   text-shadow: 0 2px 8px #0005;
-}
-
-.rules-title {
-  color: #fff;
-  text-shadow: 0 2px 8px rgba(255, 250, 250, 0.467);
 }

@@ -1,5 +1,19 @@
 import React, { useState } from 'react';
 import Rules from './Rules';
+//import './Menu.css'; // Assurez-vous d'avoir le fichier CSS pour les styles
+function Stars({ count = 80 }) {
+  const stars = Array.from({ length: count }).map((_, i) => {
+    const style = {
+      left: `${Math.random() * 100}vw`,
+      top: `${Math.random() * 100}vh`,
+      width: `${Math.random() * 2 + 1}px`,
+      height: `${Math.random() * 2 + 1}px`,
+      animationDelay: `${Math.random() * 2}s`
+    };
+    return <div className="star" style={style} key={i} />;
+  });
+  return <div className="stars">{stars}</div>;
+}
 
 const Menu = ({ onStartGame }) => {
   const [showRules, setShowRules] = useState(false);
@@ -70,17 +84,19 @@ const Menu = ({ onStartGame }) => {
 
   return (
     <>
-      <div className="animated-bg"></div>
+      <div className="animated-bg">
+        <Stars count={80} />
+      </div>
       <div className="game-menu">
         <div className="menu-glass">
           <h1>Wall Street</h1>
           {!showModeSelection && !showDifficultySelection && !showColorSelection ? (
             <div className="menu-buttons">
               <button className="menu-button play-button" onClick={handlePlayClick}>
-                <i className="fas fa-play"></i> JOUER
+                <i className="fas fa-play-circle"></i> JOUER
               </button>
               <button className="menu-button rules-button" onClick={() => setShowRules(true)}>
-                <i className="fas fa-book-open"></i> RÈGLES
+                <i className="fas fa-book"></i> RÈGLES
               </button>
               <button className="menu-button settings-button" onClick={() => alert('Paramètres à venir dans une future version')}>
                 <i className="fas fa-cog"></i> PARAMÈTRES
