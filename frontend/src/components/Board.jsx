@@ -1,7 +1,17 @@
 import React from 'react';
-import Cell from './Cell'; 
+import Cell from './Cell';
 
-const Board = ({ board, selectedPiece, validMoves, onSelectPiece, onMove }) => {
+const Board = ({ board, selectedPiece, validMoves, onSelectPiece, onMove, playerColors }) => {
+    const handleCellClick = (row, col) => {
+        // Si une pièce est déjà sélectionnée et que la case cliquée est un mouvement valide
+        if (selectedPiece && validMoves.some(move => move[0] === row && move[1] === col)) {
+            onMove(row, col);
+        } else {
+            // Sinon, on essaie de sélectionner une pièce
+            onSelectPiece(row, col);
+        }
+    };
+
     return (
         <div className="board">
             {board.map((row, rowIndex) => (
@@ -12,17 +22,12 @@ const Board = ({ board, selectedPiece, validMoves, onSelectPiece, onMove }) => {
                         
                         return (
                             <Cell
-                                key={`${rowIndex}-${colIndex}`}
+                                key={colIndex}
                                 stack={stack}
+                                onClick={() => handleCellClick(rowIndex, colIndex)}
                                 isSelected={isSelected}
                                 isValidMove={isValidMove}
-                                onClick={() => {
-                                    if (isValidMove) {
-                                        onMove(rowIndex, colIndex);
-                                    } else {
-                                        onSelectPiece(rowIndex, colIndex);
-                                    }
-                                }}
+                                playerColors={playerColors}
                             />
                         );
                     })}

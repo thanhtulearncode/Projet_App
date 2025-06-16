@@ -14,18 +14,35 @@ app.add_middleware(
 )
 
 @app.get("/board")
+<<<<<<< HEAD
 def get_board():
     return game.get_state()
+=======
+def get_board(colorPair: str = 'black-white'):
+    global game
+    # Créer une nouvelle instance si les couleurs ont changé
+    if game.color_pair != colorPair:
+        game = GameEngine(color_pair=colorPair)
+    return game.board
+>>>>>>> fafe2110 (Ajout de la fonctionnalité de choix de couleurs pour les pions)
 
 @app.get("/valid_moves/{row}/{col}")
-def get_valid_moves(row: int, col: int):
+def get_valid_moves(row: int, col: int, colorPair: str = 'black-white', mode: str = 'local', difficulty: str = 'medium'):
+    global game
+    # Vérifier si les couleurs ont changé
+    if game.color_pair != colorPair:
+        game = GameEngine(color_pair=colorPair)
     try:
         return game.get_valid_moves(row, col)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/move")
-async def make_move(data: dict):
+async def make_move(data: dict, colorPair: str = 'black-white'):
+    global game
+    # Vérifier si les couleurs ont changé
+    if game.color_pair != colorPair:
+        game = GameEngine(color_pair=colorPair)
     try:
         start_row = data['start_row']
         start_col = data['start_col']
@@ -42,8 +59,9 @@ async def make_move(data: dict):
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/reset")
-def reset_game():
+def reset_game(colorPair: str = 'black-white'):
     global game
+<<<<<<< HEAD
     game = GameEngine()
     return {"status": "Game reset"}
 
@@ -77,3 +95,75 @@ def play_turn(data: dict):
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+=======
+    game = GameEngine(color_pair=colorPair)
+    return {"status": "Game reset", "colorPair": colorPair}
+
+def get_valid_moves(self, row, col):
+    """Obtenir tous les mouvements valides pour une pièce à la position (row, col)"""
+    valid_moves = []
+    
+    # Vérifier si la case contient un pion et s'il appartient au joueur actuel
+    stack = self.board[row][col]
+    has_piece = False
+    piece_color = None
+    
+    for piece in stack:
+        if piece['type'] == 'round':
+            has_piece = True
+            piece_color = piece['color']
+            break
+    
+    if not has_piece or piece_color != self.current_player:
+        return {"validMoves": []}
+    
+    # Calculer la hauteur de l'empilement des pièces carrées
+    stack_height = sum(1 for piece in stack if piece['type'] == 'square')
+    
+    # Définir les directions (haut, droite, bas, gauche)
+    directions = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+    
+    for dr, dc in directions:
+        for distance in range(1, stack_height + 1):
+            new_row, new_col = row + dr * distance, col + dc * distance
+            
+            # Vérifier si la nouvelle position est dans les limites du plateau
+            if 0 <= new_row < 8 and 0 <= new_col < 8:
+                target_stack = self.board[new_row][new_col]
+                
+                # Vérifier si la case cible a une pièce carrée
+                has_square = False
+                for piece in target_stack:
+                    if piece['type'] == 'square':
+                        has_square = True
+                        break
+                
+                if has_square:
+                    # Vérifier si la case cible contient un pion
+                    target_has_piece = False
+                    target_piece_color = None
+                    
+                    for piece in target_stack:
+                        if piece['type'] == 'round':
+                            target_has_piece = True
+                            target_piece_color = piece['color']
+                            break
+                    
+                    # Si la case est vide, c'est un mouvement valide
+                    if not target_has_piece:
+                        valid_moves.append((new_row, new_col))
+                    # Si la case contient un pion adverse et qu'on a parcouru la distance maximale, c'est un mouvement valide
+                    elif target_piece_color != self.current_player and distance == stack_height:
+                        valid_moves.append((new_row, new_col))
+                    else:
+                        # Arrêter la recherche dans cette direction si on rencontre un obstacle
+                        break
+                else:
+                    # Ignorer les cases sans pièce carrée et continuer la recherche dans cette direction
+                    continue
+            else:
+                # Arrêter la recherche si on sort des limites du plateau
+                break
+    
+    return {"validMoves": valid_moves}
+>>>>>>> fafe2110 (Ajout de la fonctionnalité de choix de couleurs pour les pions)
