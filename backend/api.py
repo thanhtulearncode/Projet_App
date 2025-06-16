@@ -95,24 +95,7 @@ def move_square(data: dict):
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-@app.post("/move_pion")
-def move_pion_api(data: dict):
-    try:
-        start_row = data['start_row']
-        start_col = data['start_col']
-        end_row = data['end_row']
-        end_col = data['end_col']
-        success, captured = game.move_pion(start_row, start_col, end_row, end_col)
-        return {
-            "success": success,
-            "captured": bool(captured),
-            "current_player": game.current_player,
-            "state": game.get_state()
-        }
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
+    
 @app.post("/attack_pion")
 def attack_pion_api(data: dict):
     try:

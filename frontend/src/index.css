@@ -335,177 +335,82 @@ button:hover {
   box-shadow: 0 7px 14px rgba(0, 0, 0, 0.3);
 }
 
-/* Modifications des autres styles pour avoir une interface plus sobre */
-.play-button {
-  background: #87CEEB; /* Bleu ciel */
-  color: white;
-  border: 2px solid #5cacee;
+/* Styles pour la phase EPC */
+.epc-phase .cell {
+  box-shadow: inset 0 0 0 2px rgba(0, 100, 255, 0.2);
 }
 
-.play-button:hover {
-  background: #5cacee;
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 7px 14px rgba(0, 0, 0, 0.3);
+.epc-phase .selected {
+  background-color: rgba(0, 100, 255, 0.3);
+  box-shadow: inset 0 0 0 2px rgba(0, 100, 255, 0.7);
 }
 
-.rules-button {
-  background: #dcdcdc; /* Gris clair */
+/* Modifier les styles pour la position d'origine du pion */
+
+.last-pawn-position {
+  animation: pulsate 1.5s infinite alternate;
+  box-shadow: 0 0 0 2px rgba(255, 204, 0, 0.5) !important; /* Rendre moins visible */
+}
+
+@keyframes pulsate {
+  0% { box-shadow: 0 0 0 2px rgba(255, 204, 0, 0.3) !important; }
+  100% { box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.7) !important; }
+}
+
+/* Modifier ou supprimer l'indicateur textuel */
+.last-pawn-indicator {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(255, 204, 0, 0.7);
   color: #333;
-  border: 2px solid #c0c0c0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 100;
 }
 
-.rules-button:hover {
-  background: #c0c0c0;
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 7px 14px rgba(0, 0, 0, 0.3);
+/* Styles spécifiques pour la phase de déplacement d'EPC */
+.move-epc-phase .cell {
+  background-color: rgba(0, 100, 255, 0.2);
+  border: 1px solid rgba(0, 100, 255, 0.7);
 }
 
-.settings-button {
-  background: #f8f8ff; /* Blanc cassé */
-  color: #333;
-  border: 2px solid #e6e6fa;
+.move-epc-phase .cell.selected {
+  background-color: rgba(0, 100, 255, 0.4);
+  box-shadow: inset 0 0 10px rgba(0, 100, 255, 0.7);
 }
 
-.settings-button:hover {
-  background: #e6e6fa;
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 7px 14px rgba(0, 0, 0, 0.3);
+.move-epc-phase .cell.valid-move {
+  border: 3px solid #00ff00;
+  box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.7);
 }
 
-.back-to-menu-button {
-  background: #f0f0f0;
-  color: #333;
-  border: 2px solid #d3d3d3;
+/* Animation pour le déplacement d'EPC */
+@keyframes epcMove {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+  100% {
+    transform: translateY(0);
+  }
 }
 
-.back-to-menu-button:hover {
-  background: #d3d3d3;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+.epc-moving {
+  animation: epcMove 0.5s ease-in-out infinite;
 }
 
-.mode-button {
-  background: #87CEEB; /* Bleu ciel */
-  color: white;
-  border: 2px solid #5cacee;
-}
+/* Ajouter ce style */
 
-.mode-button:hover {
-  background: #5cacee;
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 7px 14px rgba(0, 0, 0, 0.3);
-}
-
-.back-button {
-  background: #e0e0e0;
-  color: #333;
-  border: 2px solid #c0c0c0;
-  margin-top: 25px;
-}
-
-.back-button:hover {
-  background: #c0c0c0;
-  transform: translateY(-3px) scale(1.03);
-}
-
-/* Styles des boutons de difficulté */
-.difficulty-button.easy {
-  background: #f0f8ff; /* Alice Blue */
-  color: #333;
-  border: 2px solid #d0e0f0;
-}
-
-.difficulty-button.easy:hover {
-  background: #d0e0f0;
-  transform: translateY(-3px) scale(1.03);
-}
-
-.difficulty-button.medium {
-  background: #b0c4de; /* Light Steel Blue */
-  color: white;
-  border: 2px solid #8aa4be;
-}
-
-.difficulty-button.medium:hover {
-  background: #8aa4be;
-  transform: translateY(-3px) scale(1.03);
-}
-
-.difficulty-button.hard {
-  background: #4682b4; /* Steel Blue */
-  color: white;
-  border: 2px solid #386890;
-}
-
-.difficulty-button.hard:hover {
-  background: #386890;
-  transform: translateY(-3px) scale(1.03);
-}
-
-/* Styles pour les boutons de sélection de couleurs */
-.color-button.black-white {
-  background: linear-gradient(to right, #333333 50%, #FFFFFF 50%);
-  color: #FFFFFF;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-  border: 2px solid #999;
-}
-
-.color-button.black-white:hover {
-  background: linear-gradient(to right, #000000 50%, #F0F0F0 50%);
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 7px 14px rgba(0, 0, 0, 0.3);
-}
-
-.color-button.red-green {
-  background: linear-gradient(to right, #8b0000 50%, #006400 50%); /* Couleurs plus sombres */
-  color: #FFFFFF;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-  border: 2px solid #999;
-}
-
-.color-button.red-green:hover {
-  background: linear-gradient(to right, #800000 50%, #005000 50%);
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 7px 14px rgba(0, 0, 0, 0.3);
-}
-
-.color-button.orange-blue {
-  background: linear-gradient(to right, #d2691e 50%, #4682b4 50%); /* Couleurs plus douces */
-  color: #FFFFFF;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-  border: 2px solid #999;
-}
-
-.color-button.orange-blue:hover {
-  background: linear-gradient(to right, #b35a1f 50%, #386890 50%);
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 7px 14px rgba(0, 0, 0, 0.3);
-}
-
-/* Style pour le bouton de sélection de couleurs dans le menu principal */
-.color-select-button {
-  background: #4682B4; /* Bleu acier, plus doux */
-  color: white;
-  border: 2px solid #2c5c8c;
-  position: relative;
-  overflow: hidden;
-}
-
-.color-select-button:hover {
-  background: #5a96c7;
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 7px 14px rgba(0, 0, 0, 0.3);
-}
-
-/* Différencier le bouton de mode dans le menu principal des autres boutons de mode */
-.menu-button.mode-button.main-menu {
-  background: #4682B4; /* Bleu acier, plus doux */
-  color: white;
-  border: 2px solid #2c5c8c;
-}
-
-.menu-button.mode-button.main-menu:hover {
-  background: #5a96c7;
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 7px 14px rgba(0, 0, 0, 0.3);
+.phase-help {
+  font-size: 14px;
+  color: #ccc;
+  margin-bottom: 10px;
+  font-style: italic;
 }
