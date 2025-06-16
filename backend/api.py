@@ -104,9 +104,13 @@ def move_pion_api(data: dict):
         end_row = data['end_row']
         end_col = data['end_col']
         success, captured = game.move_pion(start_row, start_col, end_row, end_col)
+        game_over = game.check_game_over()
+        winner = game.get_winner() if game_over else None
         return {
             "success": success,
             "captured": bool(captured),
+            "game_over": game_over,
+            "winner": winner,
             "current_player": game.current_player,
             "state": game.get_state()
         }
@@ -121,12 +125,15 @@ def attack_pion_api(data: dict):
         end_row = data['end_row']
         end_col = data['end_col']
         captured_dest = data.get('captured_dest')  # [x, y] ou None
-        print("API /attack_pion params:", start_row, start_col, end_row, end_col, captured_dest)
         success, captured, captured_valid_dest = game.attack_pion(start_row, start_col, end_row, end_col, captured_dest)
+        game_over = game.check_game_over()
+        winner = game.get_winner() if game_over else None
         return {
             "success": success,
             "captured": bool(captured),
             "captured_valid_dest": captured_valid_dest,
+            "game_over": game_over,
+            "winner": winner,
             "current_player": game.current_player,
             "state": game.get_state()
         }
