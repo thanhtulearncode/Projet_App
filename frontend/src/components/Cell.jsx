@@ -7,10 +7,39 @@ const mapType = (type) => {
     return type;
 };
 
-const Cell = ({ stack, onClick, isSelected, isValidMove }) => {
+const Cell = ({ 
+    stack, 
+    onClick, 
+    isSelected, 
+    isValidMove, 
+    playerColors, 
+    gamePhase, 
+    isLastPawnPosition 
+}) => {
+    // Construire la classe CSS avec toutes les conditions
+    let cellClassName = 'cell';
+    
+    if (isSelected) {
+        cellClassName += ' selected';
+    } 
+    
+    if (isValidMove) {
+        cellClassName += ' valid-move';
+    }
+    
+    // Ajouter la classe pour la phase EPC
+    if (gamePhase === 'move_epc') {
+        cellClassName += ' epc-phase';
+    }
+    
+    // Ajouter la classe pour la position d'origine du pion
+    if (isLastPawnPosition) {
+        cellClassName += ' last-pawn-position';
+    }
+
     return (
         <div 
-            className={`cell ${isSelected ? 'selected' : ''} ${isValidMove ? 'valid-move' : ''}`}
+            className={cellClassName}
             onClick={onClick}
             style={{
                 position: 'relative',
@@ -46,6 +75,13 @@ const Cell = ({ stack, onClick, isSelected, isValidMove }) => {
                 <span className="stack-badge">
                     {stack.filter(piece => mapType(piece.type) === 'square').length}
                 </span>
+            )}
+            
+            {/* Indicateur visuel pour la position d'origine du pion */}
+            {isLastPawnPosition && gamePhase === 'move_epc' && (
+                <div className="last-pawn-indicator">
+                    Position précédente
+                </div>
             )}
         </div>
     );

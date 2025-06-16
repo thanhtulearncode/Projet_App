@@ -1,5 +1,19 @@
 import React, { useState } from 'react';
 import Rules from './Rules';
+//import './Menu.css'; // Assurez-vous d'avoir le fichier CSS pour les styles
+function Stars({ count = 80 }) {
+  const stars = Array.from({ length: count }).map((_, i) => {
+    const style = {
+      left: `${Math.random() * 100}vw`,
+      top: `${Math.random() * 100}vh`,
+      width: `${Math.random() * 2 + 1}px`,
+      height: `${Math.random() * 2 + 1}px`,
+      animationDelay: `${Math.random() * 2}s`
+    };
+    return <div className="star" style={style} key={i} />;
+  });
+  return <div className="stars">{stars}</div>;
+}
 
 const Menu = ({ onStartGame }) => {
   const [showRules, setShowRules] = useState(false);
@@ -69,83 +83,84 @@ const Menu = ({ onStartGame }) => {
   };
 
   return (
-    <div className="game-menu">
-      <h1>Wall Street</h1>
-      
-      {!showModeSelection && !showDifficultySelection && !showColorSelection ? (
-        // Menu principal avec 5 boutons
-        <div className="menu-buttons">
-          <button className="menu-button play-button" onClick={handlePlayClick}>
-            JOUER
-          </button>
-          <button className="menu-button rules-button" onClick={() => setShowRules(true)}>
-            RÈGLES
-          </button>
-          <button className="menu-button settings-button" onClick={() => alert('Paramètres à venir dans une future version')}>
-            PARAMÈTRES
-          </button>
-          <button className="menu-button mode-button main-menu" onClick={handleModeClick}>
-            MODE DE JEU: {getModeName()}
-          </button>
-          <button className="menu-button color-select-button" onClick={handleColorClick}>
-            COULEURS: {getColorName()}
-          </button>
+    <>
+      <div className="animated-bg">
+        <Stars count={80} />
+      </div>
+      <div className="game-menu">
+        <div className="menu-glass">
+          <h1>Wall Street</h1>
+          {!showModeSelection && !showDifficultySelection && !showColorSelection ? (
+            <div className="menu-buttons">
+              <button className="menu-button play-button" onClick={handlePlayClick}>
+                <i className="fas fa-play-circle"></i> JOUER
+              </button>
+              <button className="menu-button rules-button" onClick={() => setShowRules(true)}>
+                <i className="fas fa-book"></i> RÈGLES
+              </button>
+              <button className="menu-button settings-button" onClick={() => alert('Paramètres à venir dans une future version')}>
+                <i className="fas fa-cog"></i> PARAMÈTRES
+              </button>
+              <button className="menu-button mode-button main-menu" onClick={handleModeClick}>
+                <i className="fas fa-gamepad"></i> MODE DE JEU: {getModeName()}
+              </button>
+              <button className="menu-button color-select-button" onClick={handleColorClick}>
+                <i className="fas fa-palette"></i> COULEURS: {getColorName()}
+              </button>
+            </div>
+          ) : showModeSelection ? (
+            <div className="menu-buttons">
+              <h2>Mode de jeu</h2>
+              <button className="menu-button mode-button" onClick={() => handleModeSelect('local')}>
+                <i className="fas fa-users"></i> JOUEUR VS JOUEUR
+              </button>
+              <button className="menu-button mode-button" onClick={() => handleModeSelect('ai')}>
+                <i className="fas fa-robot"></i> JOUEUR VS IA
+              </button>
+              <button className="menu-button back-button" onClick={() => setShowModeSelection(false)}>
+                <i className="fas fa-arrow-left"></i> RETOUR
+              </button>
+            </div>
+          ) : showDifficultySelection ? (
+            <div className="menu-buttons">
+              <h2>Difficulté</h2>
+              <button className="menu-button difficulty-button easy" onClick={() => handleDifficultySelect('easy')}>
+                <i className="fas fa-leaf"></i> FACILE
+              </button>
+              <button className="menu-button difficulty-button medium" onClick={() => handleDifficultySelect('medium')}>
+                <i className="fas fa-bolt"></i> MOYEN
+              </button>
+              <button className="menu-button difficulty-button hard" onClick={() => handleDifficultySelect('hard')}>
+                <i className="fas fa-fire"></i> DIFFICILE
+              </button>
+              <button className="menu-button back-button" onClick={() => {
+                setShowDifficultySelection(false);
+                setShowModeSelection(true);
+              }}>
+                <i className="fas fa-arrow-left"></i> RETOUR
+              </button>
+            </div>
+          ) : (
+            <div className="menu-buttons">
+              <h2>Couleurs des pions</h2>
+              <button className="menu-button color-button black-white" onClick={() => handleColorSelect('black-white')}>
+                <i className="fas fa-chess"></i> NOIR vs BLANC
+              </button>
+              <button className="menu-button color-button red-green" onClick={() => handleColorSelect('red-green')}>
+                <i className="fas fa-chess"></i> ROUGE vs VERT
+              </button>
+              <button className="menu-button color-button orange-blue" onClick={() => handleColorSelect('orange-blue')}>
+                <i className="fas fa-chess"></i> ORANGE vs BLEU
+              </button>
+              <button className="menu-button back-button" onClick={() => setShowColorSelection(false)}>
+                <i className="fas fa-arrow-left"></i> RETOUR
+              </button>
+            </div>
+          )}
+          {showRules && <Rules onClose={() => setShowRules(false)} />}
         </div>
-      ) : showModeSelection ? (
-        // Menu de sélection du mode
-        <div className="menu-buttons">
-          <h2>Mode de jeu</h2>
-          <button className="menu-button mode-button" onClick={() => handleModeSelect('local')}>
-            JOUEUR VS JOUEUR
-          </button>
-          <button className="menu-button mode-button" onClick={() => handleModeSelect('ai')}>
-            JOUEUR VS IA
-          </button>
-          <button className="menu-button back-button" onClick={() => setShowModeSelection(false)}>
-            RETOUR
-          </button>
-        </div>
-      ) : showDifficultySelection ? (
-        // Menu de sélection de la difficulté
-        <div className="menu-buttons">
-          <h2>Difficulté</h2>
-          <button className="menu-button difficulty-button easy" onClick={() => handleDifficultySelect('easy')}>
-            FACILE
-          </button>
-          <button className="menu-button difficulty-button medium" onClick={() => handleDifficultySelect('medium')}>
-            MOYEN
-          </button>
-          <button className="menu-button difficulty-button hard" onClick={() => handleDifficultySelect('hard')}>
-            DIFFICILE
-          </button>
-          <button className="menu-button back-button" onClick={() => {
-            setShowDifficultySelection(false);
-            setShowModeSelection(true);
-          }}>
-            RETOUR
-          </button>
-        </div>
-      ) : (
-        // Menu de sélection des couleurs
-        <div className="menu-buttons">
-          <h2>Couleurs des pions</h2>
-          <button className="menu-button color-button black-white" onClick={() => handleColorSelect('black-white')}>
-            NOIR vs BLANC
-          </button>
-          <button className="menu-button color-button red-green" onClick={() => handleColorSelect('red-green')}>
-            ROUGE vs VERT
-          </button>
-          <button className="menu-button color-button orange-blue" onClick={() => handleColorSelect('orange-blue')}>
-            ORANGE vs BLEU
-          </button>
-          <button className="menu-button back-button" onClick={() => setShowColorSelection(false)}>
-            RETOUR
-          </button>
-        </div>
-      )}
-
-      {showRules && <Rules onClose={() => setShowRules(false)} />}
-    </div>
+      </div>
+    </>
   );
 };
 
