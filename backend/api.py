@@ -24,7 +24,7 @@ def get_valid_moves(row: int, col: int):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.post("/move")
+@app.post("/move_pawn")
 async def make_move(data: dict):
     try:
         start_row = data['start_row']
@@ -40,6 +40,8 @@ async def make_move(data: dict):
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+
 
 @app.post("/reset")
 def reset_game():
@@ -74,6 +76,22 @@ def play_turn(data: dict):
             "winner": winner,
             "state": game.get_state(),
             "current_player": game.current_player
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/move_square")
+def move_square(data: dict):
+    try:
+        src_row = data['src_row']
+        src_col = data['src_col']
+        dst_row = data['dst_row']
+        dst_col = data['dst_col']
+        success = game.stack_pieces(src_row, src_col, dst_row, dst_col)
+        return {
+            "success": success,
+            "current_player": game.current_player,
+            "state": game.get_state()
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
