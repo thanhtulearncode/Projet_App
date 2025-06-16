@@ -66,7 +66,7 @@ const Game = ({ settings }) => {
         throw new Error('Erreur réseau');
       }
       const data = await response.json();
-      setValidMoves(data.validMoves);
+      setValidMoves(Array.isArray(data) ? data : data.validMoves || []);
     } catch (error) {
       console.error('Erreur lors de la récupération des mouvements valides:', error);
     }
@@ -123,6 +123,17 @@ const Game = ({ settings }) => {
     }
   };
 
+  // Nouvelle fonction de gestion du clic sur une case
+  const handleCellClick = async (row, col) => {
+    if (selectedPiece && validMoves.some(move => move[0] === row && move[1] === col)) {
+      // Si une pièce est sélectionnée et la case cliquée est un coup valide, on effectue le move
+      await handleMove(row, col);
+    } else {
+      // Sinon, on sélectionne la pièce
+      await handleSelectPiece(row, col);
+    }
+  };
+
   return (
     <div className="game">
       <div className="game-info">
@@ -145,8 +156,9 @@ const Game = ({ settings }) => {
           board={board} 
           selectedPiece={selectedPiece}
           validMoves={validMoves}
-          onSelectPiece={handleSelectPiece}
-          onMove={handleMove}
+          onSelectPiece={() => {}} // plus utilisé directement
+          onMove={() => {}} // plus utilisé directement
+          onCellClick={handleCellClick}
           playerColors={playerColors}
         />
       ) : (
