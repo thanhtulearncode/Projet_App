@@ -57,10 +57,14 @@ button:hover {
 
 .board {
   display: grid;
-  grid-template-columns: repeat(8, 50px);
-  gap: 1px;
-  margin: 20px auto;
-  justify-content: center;
+  grid-template-columns: repeat(8, 64px); /* Plus large */
+  gap: 0;
+  margin: 32px auto;
+  border: 6px solid #222;
+  border-radius: 18px;
+  box-shadow: 0 12px 40px #0008;
+  background: linear-gradient(135deg, #b58863 60%, #e0c097 100%);
+  overflow: hidden;
 }
 
 .row {
@@ -70,27 +74,35 @@ button:hover {
 
 .cell {
   position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 50px;
-  height: 50px;
-  border: 1px solid #8b4513;
-  background-color: #f0d9b5;
+  width: 64px;
+  height: 64px;
+  background: #f0d9b5;
+  border: 1.5px solid #b58863;
+  transition: background 0.2s, box-shadow 0.2s;
 }
 
-.cell.square {
-  background-color: #b58863;
+.cell:nth-child(even) {
+  background: #b58863;
 }
 
-.cell.selected {
-  border: 3px solid #ff0000;
-  box-shadow: inset 0 0 10px rgba(255,0,0,0.5);
+.row:nth-child(even) .cell:nth-child(odd),
+.row:nth-child(odd) .cell:nth-child(even) {
+  background: #b58863;
+}
+
+.cell.selected, .cell.valid-move {
+  box-shadow: 0 0 0 3px #ffd200, 0 2px 8px #0006;
+  z-index: 2;
 }
 
 .cell.valid-move {
-  border: 3px solid #00ff00;
-  box-shadow: inset 0 0 10px rgba(0,255,0,0.5);
+  background: #e6ffcc !important;
+  cursor: pointer;
+}
+
+.cell:hover {
+  background: #ffe066;
+  z-index: 2;
 }
 
 .stack-badge {
@@ -198,15 +210,26 @@ button:hover {
 }
 
 .back-to-menu-button {
-  background: #f0f0f0;
-  color: #333;
-  border: 2px solid #d3d3d3;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 0 0 12px 12px;
+  padding: 14px 0;
+  font-size: 1.08rem;
+  font-weight: bold;
+  width: 100%;
+  margin-bottom: 24px;
+  margin-top: 0;
+  cursor: pointer;
+  box-shadow: 0 2px 8px #0002;
+  transition: background 0.2s, transform 0.1s;
+  outline: none;
 }
 
 .back-to-menu-button:hover {
-  background: #d3d3d3;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(90deg, #764ba2 0%, #667eea 100%);
+  color: #ffd200;
+  transform: translateY(-2px) scale(1.04);
 }
 
 .mode-button {
@@ -335,6 +358,19 @@ button:hover {
   box-shadow: 0 7px 14px rgba(0, 0, 0, 0.3);
 }
 
+.game-mode-indicator {
+  background: linear-gradient(90deg, #ffd200 0%, #ffb347 100%);
+  color: #232526;
+  font-weight: bold;
+  font-size: 1.18rem;
+  padding: 12px 0 12px 0;
+  border-radius: 12px 12px 0 0;
+  text-align: center;
+  margin-bottom: 0;
+  box-shadow: 0 2px 8px #0002;
+  letter-spacing: 1px;
+}
+
 /* Styles pour la phase EPC */
 .epc-phase .cell {
   box-shadow: inset 0 0 0 2px rgba(0, 100, 255, 0.2);
@@ -413,4 +449,78 @@ button:hover {
   color: #ccc;
   margin-bottom: 10px;
   font-style: italic;
+}
+
+@keyframes pieceMove {
+  0% { transform: scale(1.2) translateY(-10px); opacity: 0.7; }
+  80% { transform: scale(1.05) translateY(2px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.piece-animate-move {
+  animation: pieceMove 0.35s cubic-bezier(.4,2,.6,1) 1;
+}
+
+.game-flex-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 40px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.game-board-zone {
+  flex-shrink: 0;
+}
+
+.game-info-panel {
+  min-width: 280px;
+  max-width: 340px;
+  background: rgba(30, 30, 40, 0.92);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px #0007;
+  padding: 28px 24px 24px 24px;
+  color: #fff;
+  font-size: 1.08rem;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-left: 0;
+}
+
+.game-info-panel .color-indicator,
+.game-info-panel .current-player,
+.game-info-panel .game-phase {
+  font-size: 1.12rem;
+  margin-bottom: 6px;
+}
+
+.game-info-panel .message {
+  color: #ffd200;
+  font-weight: bold;
+  margin: 10px 0 0 0;
+  font-size: 1.08rem;
+  min-height: 28px;
+}
+
+.rules-side-button {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 22px;
+  font-size: 1.08rem;
+  font-weight: bold;
+  margin-bottom: 18px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px #0002;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.rules-side-button:hover {
+  background: linear-gradient(90deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-2px) scale(1.04);
 }

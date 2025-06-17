@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from game_engine import GameEngine
 from AI import GameAI
@@ -16,7 +16,10 @@ app.add_middleware(
 )
 
 @app.get("/board")
-def get_board():
+def get_board(colorPair: str = "black-white"):
+    global game
+    if game.color_pair != colorPair:
+        game = GameEngine(color_pair=colorPair)
     return game.get_state()
 
 @app.get("/valid_moves/{row}/{col}")
@@ -44,9 +47,16 @@ async def make_move(data: dict):
         raise HTTPException(status_code=400, detail=str(e))
     
 @app.post("/reset")
-def reset_game():
+def reset_game(request: Request):
     global game
-    game = GameEngine()
+    colorPair = "black-white"
+    try:
+        data = request.query_params
+        if 'colorPair' in data:
+            colorPair = data['colorPair']
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid query parameters")
+    game = GameEngine(color_pair=colorPair)
     return {"status": "Game reset"}
 
 @app.post("/move_square")

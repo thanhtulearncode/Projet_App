@@ -14,7 +14,8 @@ const Cell = ({
     isValidMove, 
     playerColors, 
     gamePhase, 
-    isLastPawnPosition 
+    isLastPawnPosition,
+    animateMove // <-- nouvelle prop
 }) => {
     // Construire la classe CSS avec toutes les conditions
     let cellClassName = 'cell';
@@ -46,8 +47,8 @@ const Cell = ({
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                width: '50px',
-                height: '50px',
+                width: '64px',
+                height: '64px',
             }}
         >
             {/* Affiche toutes les pièces de la pile avec positionnement relatif */}
@@ -60,13 +61,15 @@ const Cell = ({
                         transform: `translate(0, ${-index * 2}px)`, // Décalage vertical pour l'effet d'empilement
                     }}
                 >
-                    <Piece 
-                        type={mapType(piece.type)} 
-                        color={piece.color} 
-                        height={piece.height}
-                        stackIndex={index}
-                        stackHeight={stack.length}
-                    />
+                    <div className={animateMove && index === stack.length - 1 ? "piece-animate-move" : ""}>
+                        <Piece 
+                            type={mapType(piece.type)} 
+                            color={piece.color} 
+                            height={piece.height}
+                            stackIndex={index}
+                            stackHeight={stack.length}
+                        />
+                    </div>
                 </div>
             ))}
             

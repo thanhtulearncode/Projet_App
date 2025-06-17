@@ -4,26 +4,36 @@ from AI import GameAI
 from ia import MinMaxAI, RandomAI
 
 class GameEngine:
-    def __init__(self):
+    def __init__(self, color_pair='black-white'):
+        self.color_pair = color_pair
         self.board = self.create_initial_board()
         self.current_player = 'white'  
         self.game_over = False
         #self.ai = GameAI('hard', 'white')  # Initialisation de l'IA pour le joueur blanc
         self.ai = RandomAI('black', depth=2)  # Initialisation de l'IA pour le joueur blanc
+        
     def create_initial_board(self):
         board = [[[] for _ in range(8)] for _ in range(8)]
         for row in range(8):
             for col in range(8):
                 self.add_square(board, row, col)
 
+        if self.color_pair == 'red-green':
+            color1, color2 = 'red', 'green'
+        elif self.color_pair == 'orange-blue':
+            color1, color2 = 'orange', 'blue'
+        else:
+            color1, color2 = 'white', 'black'
+
         for col in range(8):
             if col % 2 == 0:
-                self.add_pawn(board, 0, col, 'black')
-                self.add_pawn(board, 6, col, 'black')
+                self.add_pawn(board, 0, col, color2)
+                self.add_pawn(board, 6, col, color2)
             else:
-                self.add_pawn(board, 1, col, 'white')
-                self.add_pawn(board, 7, col, 'white')
+                self.add_pawn(board, 1, col, color1)
+                self.add_pawn(board, 7, col, color1)
         return board
+
 
     def add_square(self, board, row, col):
         color = 'null'
