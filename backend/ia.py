@@ -149,4 +149,3 @@ class RandomAI:
             move = random.choice(pion_moves)
             stack = random.choice(stack_moves)
             return [move, stack]
-
