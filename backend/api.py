@@ -93,18 +93,32 @@ def is_game_over():
 
 @app.post("/ai_move")
 def ai_move(data: dict = {}):
+    cnt = 0
+    if cnt > 0:
+         return {"success": False, "message": "L'IA a déjà joué ce tour"}
     try:
         # On suppose que l'IA joue la couleur du joueur courant
+        print("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")   
         move = game.ai.make_decision(game)
+        print(f"AI move decision: {move}")
+        print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+        action_types = [action[0] for action in move]
+        start_positions = [action[1] for action in move]
+        end_positions = [action[2] for action in move]
         if not move:
             return {"success": False, "message": "Aucun coup possible"}
-        action_type, params, _ = move
-        if action_type == 'move_pion':
-            success, captured = game.move_pion(*params)
-        elif action_type == 'stack_pieces':
-            success = game.stack_pieces(*params)
-        else:
-            success = False
+        for action_type, start_pos, end_pos in zip(action_types, start_positions, end_positions):
+            if action_type == 'move_pion':
+                success, captured = game.move_pion(start_pos[0], start_pos[1], end_pos[0], end_pos[1])
+            elif action_type == 'stack_pieces':
+                success = game.stack_pieces(start_pos[0], start_pos[1], end_pos[0], end_pos[1])
+                cnt += 1            
+            else:
+                success = False
+            print("qqqqqqqqqqqqqqqqqqqqqqqqqq")
+            if not success:
+                return {"success": False, "message": "Échec du coup AI"}
+        print("tttttttttttttttttttttttttttt")
         return {
             "success": success,
             "current_player": game.current_player,
