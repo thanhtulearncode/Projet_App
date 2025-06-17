@@ -383,38 +383,6 @@ const Game = ({ settings }) => {
     checkGameOver();
   }, [board]);
 
-  // Joue le coup de l'IA si c'est à elle de jouer
-  const playAIMove = async () => {
-    if (settings?.mode !== 'ai' || gameOver) return;
-    // On considère que l'IA est player2 (noir) par défaut
-    const iaColor = playerColors.player2;
-    if (playerColors[currentPlayer] !== iaColor) return;
-    setMessage('L\'IA réfléchit...');
-    try {
-      const response = await fetch('http://localhost:8000/ai_move', { method: 'POST' });
-      const result = await response.json();
-      if (result.success) {
-        setMessage('L\'IA a joué. À vous !');
-        fetchBoard();
-      } else {
-        setMessage('L\'IA ne peut pas jouer.');
-      }
-    } catch (error) {
-      setMessage('Erreur lors du coup de l\'IA');
-    }
-  };
-
-  // Appel automatique de l'IA après chaque changement de joueur
-  useEffect(() => {
-    if (settings?.mode === 'ai' && !gameOver) {
-      // Si c'est à l'IA de jouer, on déclenche son coup
-      const iaColor = playerColors.player2;
-      if (playerColors[currentPlayer] === iaColor) {
-        playAIMove();
-      }
-    }
-  }, [currentPlayer, gamePhase, gameOver]);
-
   // Clic sur case
   const handleCellClick = async (row, col) => {
     if (gameOver) return;
