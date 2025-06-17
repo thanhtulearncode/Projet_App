@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from game_engine import GameEngine
 from AI import GameAI
+import random
 
 app = FastAPI()
 game = GameEngine()
@@ -93,9 +94,9 @@ def is_game_over():
 
 @app.post("/ai_move")
 def ai_move(data: dict = {}):
-    cnt = 0
-    if cnt > 0:
-         return {"success": False, "message": "L'IA a déjà joué ce tour"}
+    #cnt = 0
+    #if cnt > 0:
+    #     return {"success": False, "message": "L'IA a déjà joué ce tour"}
     try:
         # On suppose que l'IA joue la couleur du joueur courant
         print("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")   
@@ -110,11 +111,29 @@ def ai_move(data: dict = {}):
         for action_type, start_pos, end_pos in zip(action_types, start_positions, end_positions):
             if action_type == 'move_pion':
                 success, captured = game.move_pion(start_pos[0], start_pos[1], end_pos[0], end_pos[1])
+                if not success:
+                    success, captured, captured_valid_dest = game.attack_pion(
+                        start_pos[0], start_pos[1], end_pos[0], end_pos[1], None
+                    )
+                    if success and captured and captured_valid_dest:
+                        # Si le pion est capturé, choisir une destination valide aléatoire
+                        random_dest = random.choice(captured_valid_dest)
+                        success, captured, _ = game.attack_pion(
+                            start_pos[0], start_pos[1], end_pos[0], end_pos[1], random_dest
+                        )
+                        print(f"[IA] Attaquez et déplacez les pions capturés vers {random_dest}")
+                    elif success:
+                        print(f"[IA] Attaque sans repositionnement : {start_pos} -> {end_pos}")
             elif action_type == 'stack_pieces':
                 success = game.stack_pieces(start_pos[0], start_pos[1], end_pos[0], end_pos[1])
-                cnt += 1            
+                if not success:
+                    print(f"Échec du mouvement de pile: {start_pos} -> {end_pos}")
+                    return {"success": False, "message": "Échec du coup AI"}           
             else:
+                print(f"Action inconnue: {action_type}")
+                print(f"Action: {action_type}, Start: {start_pos}, End: {end_pos}, Success: {success}")
                 success = False
+            print(success)
             print("qqqqqqqqqqqqqqqqqqqqqqqqqq")
             if not success:
                 return {"success": False, "message": "Échec du coup AI"}

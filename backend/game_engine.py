@@ -117,6 +117,7 @@ class GameEngine:
         for dx, dy in [(-1,0), (1,0), (0,-1), (0,1)]:  # haut, bas, gauche, droite
             nx, ny = x, y
             steps = 0
+            print(long_range)
             while steps < long_range:
                 nx += dx
                 ny += dy
@@ -137,6 +138,7 @@ class GameEngine:
                 # Sinon, on peut s'arrêter ici
                 directions.append((nx, ny))
                 steps += 1
+                print(steps)
         return directions
 
     def move_piece(self, start_row, start_col, end_row, end_col):
@@ -226,6 +228,7 @@ class GameEngine:
             return False
             
         if any(getattr(p, 'name', None) == 'Pawn' for p in self.board[src_x][src_y]):
+            print(self.board[src_x][src_y])
             print("[LOG] Case source contient un pion")
             return False
             
@@ -353,6 +356,7 @@ class GameEngine:
                 if any(getattr(p, 'name', None) == 'Square' for p in self.board[x][y]):
                     if self.get_valid_stack_moves(x, y):
                         return True
+        print("TUTUTUTTTTTTTTTT")
         return False
 
     def check_game_over(self):

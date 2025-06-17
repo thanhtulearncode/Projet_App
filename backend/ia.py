@@ -131,8 +131,11 @@ class RandomAI:
                 if board[i][j]:
                     piece = board[i][j][-1]
                     if hasattr(piece, 'name') and piece.name == 'Pawn' and piece.color == self.color:
+                        print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
                         valid_moves = game_engine.get_pawn_moves(piece, i, j)
                         end_pos = random.choice(valid_moves)
+                        if not end_pos:
+                            print("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
                         print("ccccccccccccccccccccccccccccccccccccc")
                         pion_moves.append(('move_pion', (i, j), end_pos))
                     elif hasattr(piece, 'name') and piece.name == 'Pawn':
@@ -141,11 +144,46 @@ class RandomAI:
                         # Check stack moves
                         print("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
                         valid_moves = game_engine.get_valid_stack_moves(i, j)
+                        print("TUTUTUTTUUTTTT")
                         if valid_moves:
                             end_pos = random.choice(valid_moves)
                             stack_moves.append(('stack_pieces', (i, j), end_pos))
+                        print("fffffffffffffffffffffffffffffffffffff")
+                        print(stack_moves)
         
+        print("tritrirtirti")
+        print("pion_moves:", pion_moves)
+        print("stack_moves:", stack_moves)
         if pion_moves and stack_moves:
-            move = random.choice(pion_moves)
-            stack = random.choice(stack_moves)
+            move = None
+            stack = None
+            while True:
+                print("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY")
+                move = random.choice(pion_moves)
+                #print("move:", move)
+                x, y = move[2]
+                x1, y1 = move[1]
+                long_range = len(game_engine.board[x1][y1]) - 1
+                #print("long_range:", long_range)
+                long_range2 = max(x-x1, y-y1)
+                print("long_range:", long_range)
+                print("long_range2:", long_range2)
+                print(hasattr(game_engine.board[x][y][-1], 'name'))
+                print(game_engine.board[x][y][-1].name == 'Pawn')
+                print(game_engine.board[x][y][-1].color)
+                print(self.color)
+                
+                if game_engine.board[x][y] and hasattr(game_engine.board[x][y][-1], 'name') and game_engine.board[x][y][-1].color != self.color and long_range == long_range2:
+                    break
+                    
+            while True:
+                stack = random.choice(stack_moves)
+                x, y = stack[2]
+                piece = game_engine.board[x][y][-1] if game_engine.board[x][y] else None
+                if move[2] != stack[2] and move[2] != stack[1] and not (hasattr(piece, 'name') and piece.name == 'Pawn'):
+                    break
+            
+            print("KKKKKKKKKKKKKKKKKKKKKKKK")
+            print("move:", move)
+            print("stack:", stack)
             return [move, stack]
