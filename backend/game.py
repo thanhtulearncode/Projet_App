@@ -1,6 +1,7 @@
 from game_engine import GameEngine
 from AI import GameAI
 from Action import Action
+from ia import MinMaxAI
 
 class Game:
     def __init__(self, taille=8):
@@ -10,7 +11,7 @@ class Game:
         """
         self.game_engine = GameEngine()
         self.ai1 = GameAI('hard', 'white')
-        self.ai2 = GameAI('hard', 'black')
+        self.ai2 = MinMaxAI('black', depth=2)
         self.current_player = 'white'
         self.game_over = False
         
