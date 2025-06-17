@@ -10,7 +10,8 @@ class GameEngine:
         self.current_player = 'white'  
         self.game_over = False
         #self.ai = GameAI('hard', 'white')  # Initialisation de l'IA pour le joueur blanc
-        self.ai = RandomAI('black', depth=2)  # Initialisation de l'IA pour le joueur blanc
+        #self.ai = RandomAI('black', depth=2)  # Initialisation de l'IA pour le joueur blanc
+        self.ai = MinMaxAI('black', depth=2)  # Initialisation de l'IA pour le joueur noir
         
     def create_initial_board(self):
         board = [[[] for _ in range(8)] for _ in range(8)]
@@ -34,6 +35,13 @@ class GameEngine:
                 self.add_pawn(board, 7, col, color1)
         return board
 
+    def clone(self):
+        new_engine = GameEngine(self.color_pair)
+        new_engine.board = [[stack.copy() for stack in row] for row in self.board]
+        new_engine.current_player = self.current_player
+        new_engine.game_over = self.game_over
+
+        return new_engine
 
     def add_square(self, board, row, col):
         color = 'null'

@@ -108,11 +108,15 @@ def ai_move(data: dict = {}):
     #if cnt > 0:
     #     return {"success": False, "message": "L'IA a déjà joué ce tour"}
     try:
-        # On suppose que l'IA joue la couleur du joueur courant
-        print("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")   
-        move = game.ai.make_decision(game)
+        print("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
+        try:
+            move = game.ai.make_decision(game)
+        except Exception as e:
+            print("Exception in make_decision:", e)
+            import traceback
+            traceback.print_exc()
+            raise
         print(f"AI move decision: {move}")
-        print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
         action_types = [action[0] for action in move]
         start_positions = [action[1] for action in move]
         end_positions = [action[2] for action in move]
