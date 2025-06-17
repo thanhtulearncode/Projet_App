@@ -48,12 +48,23 @@ const Menu = ({ onStartGame }) => {
       setShowDifficultySelection(true);
     } else {
       setShowModeSelection(false);
+      onStartGame({
+        mode: 'local',
+        difficulty: null,
+        colorPair: selectedColorPair
+      });
     }
   };
 
   const handleDifficultySelect = (difficulty) => {
     setSelectedDifficulty(difficulty);
     setShowDifficultySelection(false);
+    // Lance la partie contre l'IA avec la difficulté choisie
+    onStartGame({
+      mode: 'ai',
+      difficulty: difficulty,
+      colorPair: selectedColorPair
+    });
   };
 
   const handleColorSelect = (colorPair) => {

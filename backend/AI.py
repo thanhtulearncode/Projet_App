@@ -1,6 +1,6 @@
 import random
 import math
-from game_engine import GameEngine
+# from game_engine import GameEngine  # <-- Retiré pour éviter l'import circulaire
 
 class GameAI:
     def __init__(self, difficulty_level, couleur):
@@ -23,7 +23,8 @@ class GameAI:
         :param game_engine: Instance de GameEngine
         :return: (type_move, start_pos, end_pos) où type_move est 'move_pion' ou 'stack_pieces'
         """
-        # Obtenir la probabilité basée sur le niveau de difficulté
+        # Import local pour éviter l'import circulaire
+        # from game_engine import GameEngine
         correct_probability = self.probability_map[self.difficulty_level]
         
         # Décider si on prend la bonne décision ou non
@@ -91,6 +92,7 @@ class GameAI:
         :param move: (type_move, start_pos, end_pos)
         :return: Nouvelle instance de GameEngine avec le mouvement effectué
         """
+        from game_engine import GameEngine  # Import local pour éviter l'import circulaire
         new_engine = GameEngine()
         new_engine.board = [row[:] for row in game_engine.board]
         new_engine.current_player = game_engine.current_player
