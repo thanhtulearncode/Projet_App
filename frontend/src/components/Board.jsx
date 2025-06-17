@@ -9,7 +9,8 @@ const Board = ({
   onCellClick, 
   playerColors,
   gamePhase,
-  lastPawnPosition
+  lastPawnPosition,
+  lastMoveDest // <-- nouvelle prop
 }) => {
   return (
     <div className="board">
@@ -32,6 +33,10 @@ const Board = ({
                                        lastPawnPosition.row === rowIndex && 
                                        lastPawnPosition.col === colIndex;
             
+            // Déterminer si cette cellule doit animer la pièce
+            const animateMove = lastMoveDest &&
+              lastMoveDest.row === rowIndex &&
+              lastMoveDest.col === colIndex;
             return (
               <Cell
                 key={colIndex}
@@ -42,6 +47,7 @@ const Board = ({
                 playerColors={playerColors}
                 gamePhase={gamePhase}
                 isLastPawnPosition={isLastPawnPosition}
+                animateMove={animateMove}
               />
             );
           })}

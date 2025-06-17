@@ -4,26 +4,44 @@ from AI import GameAI
 from ia import MinMaxAI, RandomAI
 
 class GameEngine:
-    def __init__(self):
+    def __init__(self, color_pair='black-white'):
+        self.color_pair = color_pair
         self.board = self.create_initial_board()
         self.current_player = 'white'  
         self.game_over = False
         #self.ai = GameAI('hard', 'white')  # Initialisation de l'IA pour le joueur blanc
-        self.ai = RandomAI('black', depth=2)  # Initialisation de l'IA pour le joueur blanc
+        #self.ai = RandomAI('black', depth=2)  # Initialisation de l'IA pour le joueur blanc
+        self.ai = MinMaxAI('black', depth=2)  # Initialisation de l'IA pour le joueur noir
+        
     def create_initial_board(self):
         board = [[[] for _ in range(8)] for _ in range(8)]
         for row in range(8):
             for col in range(8):
                 self.add_square(board, row, col)
 
+        if self.color_pair == 'red-green':
+            color1, color2 = 'red', 'green'
+        elif self.color_pair == 'orange-blue':
+            color1, color2 = 'orange', 'blue'
+        else:
+            color1, color2 = 'white', 'black'
+
         for col in range(8):
             if col % 2 == 0:
-                self.add_pawn(board, 0, col, 'black')
-                self.add_pawn(board, 6, col, 'black')
+                self.add_pawn(board, 0, col, color2)
+                self.add_pawn(board, 6, col, color2)
             else:
-                self.add_pawn(board, 1, col, 'white')
-                self.add_pawn(board, 7, col, 'white')
+                self.add_pawn(board, 1, col, color1)
+                self.add_pawn(board, 7, col, color1)
         return board
+
+    def clone(self):
+        new_engine = GameEngine(self.color_pair)
+        new_engine.board = [[stack.copy() for stack in row] for row in self.board]
+        new_engine.current_player = self.current_player
+        new_engine.game_over = self.game_over
+
+        return new_engine
 
     def add_square(self, board, row, col):
         color = 'null'
@@ -117,6 +135,7 @@ class GameEngine:
         for dx, dy in [(-1,0), (1,0), (0,-1), (0,1)]:  # haut, bas, gauche, droite
             nx, ny = x, y
             steps = 0
+            print(long_range)
             while steps < long_range:
                 nx += dx
                 ny += dy
@@ -137,6 +156,7 @@ class GameEngine:
                 # Sinon, on peut s'arrêter ici
                 directions.append((nx, ny))
                 steps += 1
+                print(steps)
         return directions
 
     def move_piece(self, start_row, start_col, end_row, end_col):
@@ -226,6 +246,7 @@ class GameEngine:
             return False
             
         if any(getattr(p, 'name', None) == 'Pawn' for p in self.board[src_x][src_y]):
+            print(self.board[src_x][src_y])
             print("[LOG] Case source contient un pion")
             return False
             
@@ -353,6 +374,7 @@ class GameEngine:
                 if any(getattr(p, 'name', None) == 'Square' for p in self.board[x][y]):
                     if self.get_valid_stack_moves(x, y):
                         return True
+        print("TUTUTUTTTTTTTTTT")
         return False
 
     def check_game_over(self):

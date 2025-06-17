@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Board from './Board';
+import Rules from './Rules';
 
 const Game = ({ settings }) => {
   const [board, setBoard] = useState([]);
@@ -15,6 +16,7 @@ const Game = ({ settings }) => {
   const [lastPawnPosition, setLastPawnPosition] = useState(null);
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(null);
+  const [showRules, setShowRules] = useState(false);
   // Gestion AI state
   const [aiState, setAIState] = useState(false);
 
@@ -416,6 +418,15 @@ const Game = ({ settings }) => {
   return (
     <div className="game">
       <div className="game-info">
+      </div>
+      <div className="game-info-panel">
+        <button className="rules-side-button" onClick={() => setShowRules(true)}>
+          Règles
+        </button>
+
+
+
+
         {settings?.mode === 'ai' && (
           <div className="ai-indicator">
             IA: {settings.difficulty === 'easy' ? 'Facile 😊' : 

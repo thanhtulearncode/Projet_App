@@ -1,7 +1,8 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from game_engine import GameEngine
 from AI import GameAI
+import random
 
 app = FastAPI()
 game = GameEngine()
@@ -15,7 +16,10 @@ app.add_middleware(
 )
 
 @app.get("/board")
-def get_board():
+def get_board(colorPair: str = "black-white"):
+    global game
+    if game.color_pair != colorPair:
+        game = GameEngine(color_pair=colorPair)
     return game.get_state()
 
 @app.get("/valid_moves/{row}/{col}")
@@ -44,9 +48,16 @@ async def make_move(data: dict):
         raise HTTPException(status_code=400, detail=str(e))
     
 @app.post("/reset")
-def reset_game():
+def reset_game(request: Request):
     global game
-    game = GameEngine()
+    colorPair = "black-white"
+    try:
+        data = request.query_params
+        if 'colorPair' in data:
+            colorPair = data['colorPair']
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid query parameters")
+    game = GameEngine(color_pair=colorPair)
     return {
         "status": "Game reset",
         "board": game.get_state()
@@ -97,15 +108,19 @@ def is_game_over():
 
 @app.post("/ai_move")
 def ai_move(data: dict = {}):
-    cnt = 0
-    if cnt > 0:
-         return {"success": False, "message": "L'IA a déjà joué ce tour"}
+    #cnt = 0
+    #if cnt > 0:
+    #     return {"success": False, "message": "L'IA a déjà joué ce tour"}
     try:
-        # On suppose que l'IA joue la couleur du joueur courant
-        print("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")   
-        move = game.ai.make_decision(game)
+        print("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
+        try:
+            move = game.ai.make_decision(game)
+        except Exception as e:
+            print("Exception in make_decision:", e)
+            import traceback
+            traceback.print_exc()
+            raise
         print(f"AI move decision: {move}")
-        print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
         action_types = [action[0] for action in move]
         start_positions = [action[1] for action in move]
         end_positions = [action[2] for action in move]
@@ -114,11 +129,29 @@ def ai_move(data: dict = {}):
         for action_type, start_pos, end_pos in zip(action_types, start_positions, end_positions):
             if action_type == 'move_pion':
                 success, captured = game.move_pion(start_pos[0], start_pos[1], end_pos[0], end_pos[1])
+                if not success:
+                    success, captured, captured_valid_dest = game.attack_pion(
+                        start_pos[0], start_pos[1], end_pos[0], end_pos[1], None
+                    )
+                    if success and captured and captured_valid_dest:
+                        # Si le pion est capturé, choisir une destination valide aléatoire
+                        random_dest = random.choice(captured_valid_dest)
+                        success, captured, _ = game.attack_pion(
+                            start_pos[0], start_pos[1], end_pos[0], end_pos[1], random_dest
+                        )
+                        print(f"[IA] Attaquez et déplacez les pions capturés vers {random_dest}")
+                    elif success:
+                        print(f"[IA] Attaque sans repositionnement : {start_pos} -> {end_pos}")
             elif action_type == 'stack_pieces':
                 success = game.stack_pieces(start_pos[0], start_pos[1], end_pos[0], end_pos[1])
-                cnt += 1            
+                if not success:
+                    print(f"Échec du mouvement de pile: {start_pos} -> {end_pos}")
+                    return {"success": False, "message": "Échec du coup AI"}           
             else:
+                print(f"Action inconnue: {action_type}")
+                print(f"Action: {action_type}, Start: {start_pos}, End: {end_pos}, Success: {success}")
                 success = False
+            print(success)
             print("qqqqqqqqqqqqqqqqqqqqqqqqqq")
             if not success:
                 return {"success": False, "message": "Échec du coup AI"}
@@ -126,7 +159,7 @@ def ai_move(data: dict = {}):
         return {
             "success": success,
             "current_player": game.current_player,
-            "boarđ": game.get_state()
+            "board": game.get_state()
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
