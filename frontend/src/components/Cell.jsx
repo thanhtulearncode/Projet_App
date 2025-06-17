@@ -46,8 +46,10 @@ const Cell = ({
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                width: '50px',
-                height: '50px',
+                width: '10vw',
+                height: '10vw',
+                maxWidth: '50px',
+                maxHeight: '50px',
             }}
         >
             {/* Affiche toutes les pièces de la pile avec positionnement relatif */}

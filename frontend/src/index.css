@@ -57,10 +57,12 @@ button:hover {
 
 .board {
   display: grid;
-  grid-template-columns: repeat(8, 50px);
+  grid-template-columns: repeat(8, 1fr); /* use fraction-based columns */
   gap: 1px;
+  width: 100%;
+  max-width: 400px; /* or 8 * 50px = 400px */
+  aspect-ratio: 1 / 1; /* optional: keep it square */
   margin: 20px auto;
-  justify-content: center;
 }
 
 .row {

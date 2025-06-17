@@ -35,6 +35,7 @@ async def make_move(data: dict):
         
         success, captured = game.move_pion(start_row, start_col, end_row, end_col)
         return {
+            "board": game.get_state(),
             "success": success,
             "captured": captured,
             "current_player": game.current_player
@@ -46,7 +47,10 @@ async def make_move(data: dict):
 def reset_game():
     global game
     game = GameEngine()
-    return {"status": "Game reset"}
+    return {
+        "status": "Game reset",
+        "board": game.get_state()
+    }
 
 @app.post("/move_square")
 def move_square(data: dict):
@@ -59,7 +63,7 @@ def move_square(data: dict):
         return {
             "success": success,
             "current_player": game.current_player,
-            "state": game.get_state()
+            "board": game.get_state()
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -79,7 +83,7 @@ def attack_pion_api(data: dict):
             "captured": bool(captured),
             "captured_valid_dest": captured_valid_dest,
             "current_player": game.current_player,
-            "state": game.get_state()
+            "board": game.get_state()
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -122,7 +126,7 @@ def ai_move(data: dict = {}):
         return {
             "success": success,
             "current_player": game.current_player,
-            "state": game.get_state()
+            "boarđ": game.get_state()
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

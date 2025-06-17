@@ -35,6 +35,15 @@ const Game = ({ settings }) => {
     fetchBoard();
   }, []);
 
+  const updateBoard = (newBoard) => {
+    setBoard(newBoard);
+    if (gamePhase === 'move_pawn') {
+        setMessage(`C'est au tour des ${getColorName(playerColors[currentPlayer])} de déplacer un pion`);
+      } else {
+        setMessage(`${getColorName(playerColors[currentPlayer])} doit maintenant déplacer un EPC`);
+      }
+  };
+
   const fetchBoard = async () => {
     try {
       const params = new URLSearchParams({
@@ -177,7 +186,7 @@ const Game = ({ settings }) => {
           setValidMoves([]);
           setLastPawnPosition({ row: selectedPiece.row, col: selectedPiece.col });
           setGamePhase('move_epc');
-          fetchBoard();
+          updateBoard(result.board);
         }
       } catch (error) {
         setMessage('Erreur lors de la capture');
@@ -202,7 +211,7 @@ const Game = ({ settings }) => {
           setValidMoves([]);
           setLastPawnPosition({ row: selectedPiece.row, col: selectedPiece.col });
           setGamePhase('move_epc');
-          fetchBoard();
+          updateBoard(result.board);
         }
       } catch (error) {
         setMessage('Erreur lors du déplacement');
@@ -232,7 +241,7 @@ const Game = ({ settings }) => {
       setMessage('Pion capturé déplacé !');
       setLastPawnPosition({ row: pendingCaptured.from.row, col: pendingCaptured.from.col });
       setGamePhase('move_epc');
-      fetchBoard();
+      updateBoard(result.board);
     } catch (error) {
       setMessage('Erreur lors du déplacement du pion capturé');
     }
@@ -261,7 +270,7 @@ const Game = ({ settings }) => {
         setLastPawnPosition(null);
         setCurrentPlayer(currentPlayer === 'player1' ? 'player2' : 'player1');
         setGamePhase('move_pawn');
-        fetchBoard();
+        updateBoard(result.board);
         console.log('mode:', settings?.mode);
         if (settings?.mode === 'ai') {
           handleAIPlay();
@@ -292,7 +301,7 @@ const Game = ({ settings }) => {
       const data = await response.json();
       if (data.success) { 
         setMessage('L\'IA a joué son coup');
-        fetchBoard();
+        updateBoard(data.board);
         setAIState(false);
         setCurrentPlayer('player1');
         setGamePhase('move_pawn');
@@ -324,8 +333,9 @@ const Game = ({ settings }) => {
       const params = new URLSearchParams({
         colorPair: settings?.colorPair || 'black-white'
       });
-      await fetch(`http://localhost:8000/reset?${params}`, { method: 'POST' });
-      fetchBoard();
+      const response = await fetch(`http://localhost:8000/reset?${params}`, { method: 'POST' });
+      const data = await response.json();
+      updateBoard(data.board);
       setSelectedPiece(null);
       setValidMoves([]);
       setSelectedEPC(null);
