@@ -4,75 +4,78 @@ const Piece = ({ type, color, stackIndex, stackHeight }) => {
     // Style différent pour les pièces carrées et rondes
     const getStyle = () => {
         const baseStyle = {
-            width: '40px',
-            height: '40px',
+            width: '38px',
+            height: '38px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+            margin: 'auto',
+            transition: 'box-shadow 0.2s, transform 0.2s',
         };
 
-        // Style pour les pièces carrées (fond)
         if (type === 'square') {
             return {
                 ...baseStyle,
-                borderRadius: '4px',
-                backgroundColor: color || '#b58863',
-                border: '1px solid #8b4513',
+                borderRadius: '8px',
+                background: 'linear-gradient(145deg, #e0c097 60%, #b58863 100%)',
+                border: '2px solid #8b4513',
+                boxShadow: '0 2px 8px #8b4513aa, 0 1px 0 #fff8 inset',
             };
         }
         
-        // Style pour les pions ronds - Support de toutes les couleurs
         if (type === 'round') {
-            let backgroundColor;
-            let borderColor;
-            
-            // Déterminer la couleur de fond selon la couleur du pion
+            let background, borderColor, shadow;
             switch (color) {
                 case 'black':
-                    backgroundColor = '#000000';
-                    borderColor = '#444444';
+                    background = 'radial-gradient(circle at 30% 30%, #444 60%, #000 100%)';
+                    borderColor = '#222';
+                    shadow = '0 2px 8px #000a';
                     break;
                 case 'white':
-                    backgroundColor = '#FFFFFF';
-                    borderColor = '#999999';
+                    background = 'radial-gradient(circle at 30% 30%, #fff 70%, #ccc 100%)';
+                    borderColor = '#bbb';
+                    shadow = '0 2px 8px #8888';
                     break;
                 case 'red':
-                    backgroundColor = '#C0392B';
+                    background = 'radial-gradient(circle at 30% 30%, #ff6b6b 60%, #b22222 100%)';
                     borderColor = '#922B21';
+                    shadow = '0 2px 8px #b22222aa';
                     break;
                 case 'green':
-                    backgroundColor = '#27AE60';
+                    background = 'radial-gradient(circle at 30% 30%, #7fff7f 60%, #228B22 100%)';
                     borderColor = '#1E8449';
+                    shadow = '0 2px 8px #228B22aa';
                     break;
                 case 'orange':
-                    backgroundColor = '#E67E22';
+                    background = 'radial-gradient(circle at 30% 30%, #ffd580 60%, #e67e22 100%)';
                     borderColor = '#BA4A00';
+                    shadow = '0 2px 8px #e67e22aa';
                     break;
                 case 'blue':
-                    backgroundColor = '#2980B9';
+                    background = 'radial-gradient(circle at 30% 30%, #85caff 60%, #2980b9 100%)';
                     borderColor = '#1F618D';
+                    shadow = '0 2px 8px #2980b9aa';
                     break;
                 default:
-                    backgroundColor = '#FFFFFF';
-                    borderColor = '#999999';
+                    background = '#fff';
+                    borderColor = '#999';
+                    shadow = '0 2px 8px #8888';
             }
-            
             return {
                 ...baseStyle,
                 borderRadius: '50%',
-                backgroundColor: backgroundColor,
-                border: `2px solid ${borderColor}`,
-                transform: 'scale(0.8)', // Réduire légèrement la taille du pion
+                background,
+                border: `2.5px solid ${borderColor}`,
+                boxShadow: shadow,
+                transform: 'scale(0.85)',
             };
         }
-        
         return baseStyle;
     };
 
     return (
-        <div style={getStyle()}>
-        </div>
+        <div style={getStyle()} />
     );
 };
 
