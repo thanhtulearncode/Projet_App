@@ -42,8 +42,6 @@ async def make_move(data: dict):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     
-
-
 @app.post("/reset")
 def reset_game():
     global game

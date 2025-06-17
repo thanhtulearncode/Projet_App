@@ -15,6 +15,8 @@ const Game = ({ settings }) => {
   const [lastPawnPosition, setLastPawnPosition] = useState(null);
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(null);
+  // Gestion AI state
+  const [aiState, setAIState] = useState(false);
 
   // Définir les couleurs des joueurs
   const getPlayerColors = () => {
@@ -90,6 +92,10 @@ const Game = ({ settings }) => {
   const handleSelectPiece = async (row, col) => {
     if (gamePhase !== 'move_pawn') {
       setMessage('Vous devez d\'abord déplacer un EPC');
+      return;
+    }
+    if (aiState) {
+      setMessage('L\'IA est en train de jouer, veuillez patienter');
       return;
     }
     if (board[row][col].length === 0 || 
@@ -256,6 +262,10 @@ const Game = ({ settings }) => {
         setCurrentPlayer(currentPlayer === 'player1' ? 'player2' : 'player1');
         setGamePhase('move_pawn');
         fetchBoard();
+        console.log('mode:', settings?.mode);
+        if (settings?.mode === 'ai') {
+          handleAIPlay();
+        }
       } else {
         setMessage('Mouvement d\'EPC invalide');
       }
@@ -263,7 +273,39 @@ const Game = ({ settings }) => {
       setMessage('Erreur lors du déplacement EPC');
     }
   };
-
+  const handleAIPlay = async () => {
+    //if (gamePhase !== 'move_pawn' || currentPlayer !== 'player2') return;
+    try {
+      setAIState(true);
+      setMessage('L\'IA réfléchit...');
+      const response = await fetch('http://localhost:8000/ai_move', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          board,
+          playerColor: playerColors.player2,
+          difficulty: settings?.difficulty || 'medium',
+          colorPair: settings?.colorPair || 'black-white'
+        })
+      });
+      if (!response.ok) throw new Error('Erreur réseau');
+      const data = await response.json();
+      if (data.success) { 
+        setMessage('L\'IA a joué son coup');
+        fetchBoard();
+        setAIState(false);
+        setCurrentPlayer('player1');
+        setGamePhase('move_pawn');
+        setSelectedPiece(null);
+        setValidMoves([]);
+        setLastPawnPosition(null);
+      } else {
+        setMessage('L\'IA n\'a pas pu jouer');
+      }
+    } catch (error) { 
+      setMessage('Erreur lors du coup de l\'IA');
+    }
+  };
   // Passer le déplacement EPC
   const skipEPCMove = () => {
     if (gamePhase === 'move_epc') {
@@ -291,6 +333,9 @@ const Game = ({ settings }) => {
       setLastPawnPosition(null);
       setCurrentPlayer('player1');
       setGamePhase('move_pawn');
+      setAIState(false);
+      setGameOver(false);
+      setWinner(null);
       setMessage('Nouvelle partie commencée');
     } catch (error) {
       setMessage('Erreur de connexion au serveur');
