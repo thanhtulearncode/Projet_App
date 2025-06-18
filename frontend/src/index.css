@@ -79,6 +79,11 @@ button:hover {
   background: #f0d9b5;
 }
 
+.row:nth-child(even) .cell:nth-child(odd),
+.row:nth-child(odd) .cell:nth-child(even) {
+  background: #b58863;
+}
+
 .cell {
   position: relative;
   width: 64px;
@@ -89,11 +94,6 @@ button:hover {
 }
 
 .cell:nth-child(even) {
-  background: #b58863;
-}
-
-.row:nth-child(even) .cell:nth-child(odd),
-.row:nth-child(odd) .cell:nth-child(even) {
   background: #b58863;
 }
 

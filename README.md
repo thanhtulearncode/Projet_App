@@ -1,5 +1,5 @@
 # Projet_App
-# 🎯 NoNameGame - Jeu de Stratégie Combinatoire Abstrait
+# 🎯 WallStreetGame - Jeu de Stratégie Combinatoire Abstrait
 
 ## 🚀 Installation
 

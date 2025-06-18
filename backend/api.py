@@ -142,9 +142,6 @@ def is_game_over(data: dict = {}):
 
 @app.post("/ai_move")
 def ai_move(data: dict = {}):
-    #cnt = 0
-    #if cnt > 0:
-    #     return {"success": False, "message": "L'IA a déjà joué ce tour"}
     game = GameEngine()
     try:
         board = data.get('board', None)
