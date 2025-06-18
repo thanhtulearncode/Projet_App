@@ -9,7 +9,7 @@ import os
 app = FastAPI()
 game = GameEngine()
 
-ALLOWED_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+ALLOWED_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000,https://wall-street-game.vercel.app").split(",")
 
 # Configuration CORS pour le développement
 app.add_middleware(
@@ -157,7 +157,6 @@ def ai_move(data: dict = {}):
         move_destination = None
         epc_posititon = None    
         epc_destination = None
-        captured_destinations = None
         if not move:
             return {"success": False, "message": "Aucun coup possible"}
         for action_type, start_pos, end_pos in zip(action_types, start_positions, end_positions):
@@ -174,7 +173,6 @@ def ai_move(data: dict = {}):
                             start_pos[0], start_pos[1], end_pos[0], end_pos[1], random_dest
                         )
                         print(f"[IA] Attaquez et déplacez les pions capturés vers {random_dest}")
-                        captured_destinations = random_dest
                     elif success:
                         print(f"[IA] Attaque sans repositionnement : {start_pos} -> {end_pos}")
                 move_position = start_pos
@@ -203,8 +201,7 @@ def ai_move(data: dict = {}):
             "pawnPosition": move_position,
             "pawnDestination": move_destination,
             "EPCPosition": epc_posititon,
-            "EPCDestination": epc_destination,
-            "capturedDestination": captured_destinations
+            "EPCDestination": epc_destination
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
