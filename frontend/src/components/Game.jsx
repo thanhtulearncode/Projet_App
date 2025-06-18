@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Board from './Board';
 import Rules from './Rules';
+import './Game.css';
 
 const Game = ({ settings }) => {
   const [board, setBoard] = useState([]);
@@ -19,6 +20,10 @@ const Game = ({ settings }) => {
   const [showRules, setShowRules] = useState(false);
   // Gestion AI state
   const [aiState, setAIState] = useState(false);
+  // New AI difficulty management
+  const [currentAIDifficulty, setCurrentAIDifficulty] = useState(settings?.difficulty || 'medium');
+  const [showDifficultySelector, setShowDifficultySelector] = useState(false);
+  const [aiMoveTime, setAiMoveTime] = useState(null);
 
   // Définir les couleurs des joueurs
   const getPlayerColors = () => {
@@ -53,7 +58,60 @@ const Game = ({ settings }) => {
 
   useEffect(() => {
     fetchBoard();
+    if (settings?.mode === 'ai') {
+      fetchAIDifficulty();
+    }
   }, []);
+
+  // Fetch current AI difficulty from backend
+  const fetchAIDifficulty = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/ai_difficulty');
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentAIDifficulty(data.difficulty);
+      }
+    } catch (error) {
+      console.log('Could not fetch AI difficulty, using default');
+    }
+  };
+
+  // Set AI difficulty
+  const setAIDifficulty = async (difficulty) => {
+    try {
+      const response = await fetch('http://localhost:8000/set_ai_difficulty', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ difficulty })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentAIDifficulty(difficulty);
+        setMessage(`Niveau IA changé à ${getDifficultyName(difficulty)}`);
+        setShowDifficultySelector(false);
+      }
+    } catch (error) {
+      setMessage('Erreur lors du changement de niveau IA');
+    }
+  };
+
+  const getDifficultyName = (difficulty) => {
+    switch (difficulty) {
+      case 'easy': return 'Facile';
+      case 'medium': return 'Moyen';
+      case 'hard': return 'Difficile';
+      default: return difficulty;
+    }
+  };
+
+  const getDifficultyEmoji = (difficulty) => {
+    switch (difficulty) {
+      case 'easy': return '😊';
+      case 'medium': return '😐';
+      case 'hard': return '😈';
+      default: return '🤖';
+    }
+  };
 
   const fetchBoard = async () => {
     try {
@@ -126,9 +184,6 @@ const Game = ({ settings }) => {
       setMessage('L\'IA est en train de jouer, veuillez patienter');
       return;
     }
-    console.log('handleSelectPiece', board[row][col]);
-    console.log('currentPlayer', currentPlayer);
-    // Vérifier que la case contient un pion de la couleur du joueur actuel
     if (board[row][col].length === 0 || 
         board[row][col][board[row][col].length - 1].type !== 'Pawn' || 
         board[row][col][board[row][col].length - 1].color !== playerColors[currentPlayer]) {
@@ -234,6 +289,8 @@ const Game = ({ settings }) => {
           setLastPawnPosition({ row: selectedPiece.row, col: selectedPiece.col });
           setGamePhase('move_epc');
           fetchBoard();
+        } else {
+          setMessage('Mouvement invalide');
         }
       } catch (error) {
         setMessage('Erreur lors du déplacement');
@@ -241,38 +298,39 @@ const Game = ({ settings }) => {
     }
   };
 
-  // Gestion du choix de la destination du pion capturé
   const handleCapturedMove = async (row, col) => {
-    if (!pendingCaptured || !pendingCaptured.validDest.some(move => move[0] === row && move[1] === col)) return;
+    if (!pendingCaptured) return;
     try {
-      const body = {
-        start_row: pendingCaptured.from.row,
-        start_col: pendingCaptured.from.col,
-        end_row: pendingCaptured.to.row,
-        end_col: pendingCaptured.to.col,
-        captured_dest: [row, col]
-      };
       const response = await fetch('http://localhost:8000/attack_pion', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        body: JSON.stringify({
+          start_row: pendingCaptured.from.row,
+          start_col: pendingCaptured.from.col,
+          end_row: pendingCaptured.to.row,
+          end_col: pendingCaptured.to.col,
+          captured_dest: [row, col]
+        })
       });
       const result = await response.json();
-      setPendingCaptured(null);
-      setValidMoves([]);
-      setMessage('Pion capturé déplacé !');
-      setLastPawnPosition({ row: pendingCaptured.from.row, col: pendingCaptured.from.col });
-      setGamePhase('move_epc');
-      fetchBoard();
+      if (result.success) {
+        setMessage('Capture et déplacement effectués');
+        setPendingCaptured(null);
+        setValidMoves([]);
+        setLastPawnPosition({ row: pendingCaptured.from.row, col: pendingCaptured.from.col });
+        setGamePhase('move_epc');
+        fetchBoard();
+      } else {
+        setMessage('Erreur lors de la capture');
+      }
     } catch (error) {
-      setMessage('Erreur lors du déplacement du pion capturé');
+      setMessage('Erreur lors de la capture');
     }
   };
 
-  // Déplacement EPC
   const handleMoveEPC = async (row, col) => {
-    if (!selectedEPC) return;
-    if (!validEPCMoves.some(move => move[0] === row && move[1] === col)) return;
+    if (gamePhase !== 'move_epc') return;
+    if (!selectedEPC || !validEPCMoves.some(move => move[0] === row && move[1] === col)) return;
     try {
       const response = await fetch('http://localhost:8000/move_square', {
         method: 'POST',
@@ -286,17 +344,13 @@ const Game = ({ settings }) => {
       });
       const result = await response.json();
       if (result.success) {
-        setMessage('EPC déplacé avec succès');
+        setMessage('Déplacement d\'EPC effectué');
         setSelectedEPC(null);
         setValidEPCMoves([]);
         setLastPawnPosition(null);
         setCurrentPlayer(currentPlayer === 'player1' ? 'player2' : 'player1');
         setGamePhase('move_pawn');
         fetchBoard();
-        console.log('mode:', settings?.mode);
-        if (settings?.mode === 'ai') {
-          handleAIPlay();
-        }
       } else {
         setMessage('Mouvement d\'EPC invalide');
       }
@@ -304,10 +358,13 @@ const Game = ({ settings }) => {
       setMessage('Erreur lors du déplacement EPC');
     }
   };
+
   const handleAIPlay = async () => {
     try {
       setAIState(true);
-      setMessage('L\'IA réfléchit...');
+      setMessage(`L'IA ${getDifficultyName(currentAIDifficulty)} réfléchit...`);
+      const startTime = Date.now();
+      
       const params = new URLSearchParams({
         colorPair: settings?.colorPair || 'black-white',
         ...getCustomColors()
@@ -315,17 +372,17 @@ const Game = ({ settings }) => {
       const response = await fetch(`http://localhost:8000/ai_move?${params}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          board,
-          playerColor: playerColors.player2,
-          difficulty: settings?.difficulty || 'medium',
-          colorPair: settings?.colorPair || 'black-white'
-        })
+        body: JSON.stringify({})
       });
+      
+      const endTime = Date.now();
+      const moveTime = (endTime - startTime) / 1000; // Convert to seconds
+      setAiMoveTime(moveTime);
+      
       if (!response.ok) throw new Error('Erreur réseau');
       const data = await response.json();
       if (data.success) { 
-        setMessage('L\'IA a joué son coup');
+        setMessage(`L'IA ${getDifficultyName(data.ai_difficulty || currentAIDifficulty)} a joué en ${moveTime.toFixed(2)}s`);
         fetchBoard();
         setAIState(false);
         setCurrentPlayer('player1');
@@ -335,11 +392,14 @@ const Game = ({ settings }) => {
         setLastPawnPosition(null);
       } else {
         setMessage('L\'IA n\'a pas pu jouer');
+        setAIState(false);
       }
     } catch (error) { 
       setMessage('Erreur lors du coup de l\'IA');
+      setAIState(false);
     }
   };
+
   // Passer le déplacement EPC
   const skipEPCMove = () => {
     if (gamePhase === 'move_epc') {
@@ -357,6 +417,7 @@ const Game = ({ settings }) => {
     try {
       const params = new URLSearchParams({
         colorPair: settings?.colorPair || 'black-white',
+        ai_difficulty: currentAIDifficulty,
         ...getCustomColors()
       });
       await fetch(`http://localhost:8000/reset?${params}`, { method: 'POST' });
@@ -371,6 +432,7 @@ const Game = ({ settings }) => {
       setAIState(false);
       setGameOver(false);
       setWinner(null);
+      setAiMoveTime(null);
       setMessage('Nouvelle partie commencée');
     } catch (error) {
       setMessage('Erreur de connexion au serveur');
@@ -438,6 +500,51 @@ const Game = ({ settings }) => {
     }
   };
 
+  // AI Difficulty Selector Component
+  const AIDifficultySelector = () => {
+    if (!showDifficultySelector) return null;
+    
+    return (
+      <div className="ai-difficulty-selector">
+        <div className="difficulty-selector-content">
+          <h3>Changer le niveau de l'IA</h3>
+          <div className="difficulty-options">
+            <button 
+              className={`difficulty-option ${currentAIDifficulty === 'easy' ? 'selected' : ''}`}
+              onClick={() => setAIDifficulty('easy')}
+            >
+              <span className="difficulty-emoji">😊</span>
+              <span className="difficulty-name">Facile</span>
+              <span className="difficulty-desc">Mouvements aléatoires</span>
+            </button>
+            <button 
+              className={`difficulty-option ${currentAIDifficulty === 'medium' ? 'selected' : ''}`}
+              onClick={() => setAIDifficulty('medium')}
+            >
+              <span className="difficulty-emoji">😐</span>
+              <span className="difficulty-name">Moyen</span>
+              <span className="difficulty-desc">Stratégie basique</span>
+            </button>
+            <button 
+              className={`difficulty-option ${currentAIDifficulty === 'hard' ? 'selected' : ''}`}
+              onClick={() => setAIDifficulty('hard')}
+            >
+              <span className="difficulty-emoji">😈</span>
+              <span className="difficulty-name">Difficile</span>
+              <span className="difficulty-desc">Stratégie avancée</span>
+            </button>
+          </div>
+          <button 
+            className="close-difficulty-selector"
+            onClick={() => setShowDifficultySelector(false)}
+          >
+            Fermer
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="game">
       <div className="game-flex-container">
@@ -462,9 +569,22 @@ const Game = ({ settings }) => {
             Règles
           </button>
           {settings?.mode === 'ai' && (
-            <div className="ai-indicator">
-              IA: {settings.difficulty === 'easy' ? 'Facile 😊' : 
-                  settings.difficulty === 'medium' ? 'Moyen 😐' : 'Difficile 😈'}
+            <div className="ai-controls">
+              <div className="ai-indicator">
+                IA: {getDifficultyName(currentAIDifficulty)} {getDifficultyEmoji(currentAIDifficulty)}
+              </div>
+              <button 
+                className="change-ai-difficulty-button"
+                onClick={() => setShowDifficultySelector(true)}
+                disabled={aiState}
+              >
+                Changer niveau
+              </button>
+              {aiMoveTime && (
+                <div className="ai-move-time">
+                  Dernier coup: {aiMoveTime.toFixed(2)}s
+                </div>
+              )}
             </div>
           )}
           <div className="color-indicator">
@@ -500,6 +620,7 @@ const Game = ({ settings }) => {
           <button onClick={resetGame}>Rejouer</button>
         </div>
       )}
+      <AIDifficultySelector />
     </div>
   );
 };

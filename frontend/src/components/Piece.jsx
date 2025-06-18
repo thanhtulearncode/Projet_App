@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Piece = ({ type, color, stackIndex, stackHeight, playerColors }) => {
+const Piece = ({ type, color, stackIndex, stackHeight, isFullscreen, playerColors }) => {
     // Map color to custom color if needed
     let trueColor = color;
     if (playerColors) {
@@ -12,9 +12,12 @@ const Piece = ({ type, color, stackIndex, stackHeight, playerColors }) => {
     }
     // Style différent pour les pièces carrées et rondes
     const getStyle = () => {
+        // Calculer la taille en fonction du mode d'affichage
+        const baseSize = isFullscreen ? '60px' : '38px';
+        
         const baseStyle = {
-            width: '38px',
-            height: '38px',
+            width: baseSize,
+            height: baseSize,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -66,51 +69,6 @@ const Piece = ({ type, color, stackIndex, stackHeight, playerColors }) => {
                     borderColor = '#1F618D';
                     shadow = '0 2px 8px #2980b9aa';
                     break;
-                case 'yellow':
-                    background = 'radial-gradient(circle at 30% 30%, #fff700 60%, #bbaa00 100%)';
-                    borderColor = '#bbaa00';
-                    shadow = '0 2px 8px #bbaa00aa';
-                    break;
-                case 'purple':
-                    background = 'radial-gradient(circle at 30% 30%, #c299fc 60%, #6c3483 100%)';
-                    borderColor = '#6c3483';
-                    shadow = '0 2px 8px #6c3483aa';
-                    break;
-                case 'pink':
-                    background = 'radial-gradient(circle at 30% 30%, #ffb6c1 60%, #e75480 100%)';
-                    borderColor = '#e75480';
-                    shadow = '0 2px 8px #e75480aa';
-                    break;
-                case 'brown':
-                    background = 'radial-gradient(circle at 30% 30%, #bc8f8f 60%, #6e2c00 100%)';
-                    borderColor = '#6e2c00';
-                    shadow = '0 2px 8px #6e2c00aa';
-                    break;
-                case 'gray':
-                    background = 'radial-gradient(circle at 30% 30%, #e0e0e0 60%, #888 100%)';
-                    borderColor = '#888';
-                    shadow = '0 2px 8px #8888';
-                    break;
-                case 'cyan':
-                    background = 'radial-gradient(circle at 30% 30%, #a7fffa 60%, #00bcd4 100%)';
-                    borderColor = '#00bcd4';
-                    shadow = '0 2px 8px #00bcd4aa';
-                    break;
-                case 'magenta':
-                    background = 'radial-gradient(circle at 30% 30%, #ffb3ff 60%, #c71585 100%)';
-                    borderColor = '#c71585';
-                    shadow = '0 2px 8px #c71585aa';
-                    break;
-                case 'lime':
-                    background = 'radial-gradient(circle at 30% 30%, #eaffd0 60%, #32cd32 100%)';
-                    borderColor = '#32cd32';
-                    shadow = '0 2px 8px #32cd32aa';
-                    break;
-                case 'navy':
-                    background = 'radial-gradient(circle at 30% 30%, #b0c4de 60%, #001f3f 100%)';
-                    borderColor = '#001f3f';
-                    shadow = '0 2px 8px #001f3faa';
-                    break;
                 default:
                     background = trueColor;
                     borderColor = trueColor;
@@ -122,7 +80,7 @@ const Piece = ({ type, color, stackIndex, stackHeight, playerColors }) => {
                 background,
                 border: `2.5px solid ${borderColor}`,
                 boxShadow: shadow,
-                transform: 'scale(0.85)',
+                transform: isFullscreen ? 'scale(0.9)' : 'scale(0.85)',
             };
         }
         return baseStyle;

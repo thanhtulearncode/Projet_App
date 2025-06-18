@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from game_engine import GameEngine
 from AI import GameAI
+from ia import AIFactory
 import random
 
 app = FastAPI()
@@ -21,6 +22,28 @@ def get_board(colorPair: str = "black-white"):
     if game.color_pair != colorPair:
         game = GameEngine(color_pair=colorPair)
     return game.get_state()
+
+@app.get("/ai_difficulty")
+def get_ai_difficulty():
+    """Get the current AI difficulty level"""
+    return {"difficulty": game.get_ai_difficulty()}
+
+@app.post("/set_ai_difficulty")
+def set_ai_difficulty(data: dict):
+    """Set the AI difficulty level"""
+    try:
+        difficulty = data.get('difficulty', 'medium')
+        if difficulty not in ['easy', 'medium', 'hard']:
+            raise HTTPException(status_code=400, detail="Invalid difficulty level. Use 'easy', 'medium', or 'hard'")
+        
+        game.set_ai_difficulty(difficulty)
+        return {
+            "success": True,
+            "difficulty": difficulty,
+            "message": f"AI difficulty set to {difficulty}"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/valid_moves/{row}/{col}")
 def get_valid_moves(row: int, col: int):
@@ -50,14 +73,24 @@ async def make_move(data: dict):
 def reset_game(request: Request):
     global game
     colorPair = "black-white"
+    ai_difficulty = "medium"
     try:
         data = request.query_params
         if 'colorPair' in data:
             colorPair = data['colorPair']
+        if 'ai_difficulty' in data:
+            ai_difficulty = data['ai_difficulty']
+            if ai_difficulty not in ['easy', 'medium', 'hard']:
+                ai_difficulty = "medium"  # Default to medium if invalid
     except Exception as e:
         raise HTTPException(status_code=400, detail="Invalid query parameters")
-    game = GameEngine(color_pair=colorPair)
-    return {"status": "Game reset"}
+    
+    game = GameEngine(color_pair=colorPair, ai_difficulty=ai_difficulty)
+    return {
+        "status": "Game reset",
+        "ai_difficulty": ai_difficulty,
+        "color_pair": colorPair
+    }
 
 @app.post("/move_square")
 def move_square(data: dict):
@@ -104,11 +137,8 @@ def is_game_over():
 
 @app.post("/ai_move")
 def ai_move(data: dict = {}):
-    #cnt = 0
-    #if cnt > 0:
-    #     return {"success": False, "message": "L'IA a déjà joué ce tour"}
     try:
-        print("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
+        print(f"[AI] {game.ai.difficulty} AI is thinking...")
         try:
             move = game.ai.make_decision(game)
         except Exception as e:
@@ -120,6 +150,10 @@ def ai_move(data: dict = {}):
         action_types = [action[0] for action in move]
         start_positions = [action[1] for action in move]
         end_positions = [action[2] for action in move]
+        move_position = None
+        move_destination = None
+        epc_posititon = None    
+        epc_destination = None
         if not move:
             return {"success": False, "message": "Aucun coup possible"}
         for action_type, start_pos, end_pos in zip(action_types, start_positions, end_positions):
@@ -138,11 +172,15 @@ def ai_move(data: dict = {}):
                         print(f"[IA] Attaquez et déplacez les pions capturés vers {random_dest}")
                     elif success:
                         print(f"[IA] Attaque sans repositionnement : {start_pos} -> {end_pos}")
+                move_position = start_pos
+                move_destination = end_pos
             elif action_type == 'stack_pieces':
                 success = game.stack_pieces(start_pos[0], start_pos[1], end_pos[0], end_pos[1])
                 if not success:
                     print(f"Échec du mouvement de pile: {start_pos} -> {end_pos}")
-                    return {"success": False, "message": "Échec du coup AI"}           
+                    return {"success": False, "message": "Échec du coup AI"}
+                epc_posititon = start_pos
+                epc_destination = end_pos           
             else:
                 print(f"Action inconnue: {action_type}")
                 print(f"Action: {action_type}, Start: {start_pos}, End: {end_pos}, Success: {success}")
@@ -155,7 +193,8 @@ def ai_move(data: dict = {}):
         return {
             "success": success,
             "current_player": game.current_player,
-            "state": game.get_state()
+            "state": game.get_state(),
+            "ai_difficulty": game.get_ai_difficulty()
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
