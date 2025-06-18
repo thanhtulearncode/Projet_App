@@ -603,33 +603,8 @@ const Game = ({ settings }) => {
       </div>
 
       <div className="game-content">
-        
-        <div className="game-board-center">
-          <div className="board-logo-background"></div>
-          {board.length > 0 ? (
-            <Board 
-              board={board} 
-              selectedPiece={gamePhase === 'move_pawn' ? selectedPiece : null}
-              selectedEPC={gamePhase === 'move_epc' ? selectedEPC : null}
-              validMoves={gamePhase === 'move_pawn' ? validMoves : validEPCMoves}
-              onCellClick={handleCellClick}
-              playerColors={playerColors}
-              gamePhase={gamePhase}
-              lastPawnPosition={lastPawnPosition}
-              lastMoveDest={lastPawnDestination}
-              lastEPCPosition={lastEPCPosition}
-              lastEPCDestination={lastEPCDestination}
-              currentPlayer={currentPlayer}
-            />
-          ) : (
-            <div className="loading-board">
-              <div className="spinner"></div>
-              <p>Chargement du plateau...</p>
-            </div>
-          )}
-        </div>
 
-        <div className="game-sidebar">
+        <div className="game-sidebar mobile-order-1">
           <div className="game-proverb">
             "Focus To Win, Strategy To Conquer"
           </div>
@@ -676,6 +651,31 @@ const Game = ({ settings }) => {
 
 
         </div>
+        <div className="game-board-center mobile-order-2">
+          <div className="board-logo-background"></div>
+          {board.length > 0 ? (
+            <Board 
+              board={board} 
+              selectedPiece={gamePhase === 'move_pawn' ? selectedPiece : null}
+              selectedEPC={gamePhase === 'move_epc' ? selectedEPC : null}
+              validMoves={gamePhase === 'move_pawn' ? validMoves : validEPCMoves}
+              onCellClick={handleCellClick}
+              playerColors={playerColors}
+              gamePhase={gamePhase}
+              lastPawnPosition={lastPawnPosition}
+              lastMoveDest={lastPawnDestination}
+              lastEPCPosition={lastEPCPosition}
+              lastEPCDestination={lastEPCDestination}
+              currentPlayer={currentPlayer}
+            />
+          ) : (
+            <div className="loading-board">
+              <div className="spinner"></div>
+              <p>Chargement du plateau...</p>
+            </div>
+          )}
+        </div>
+
       </div>
 
       {/* Règles */}
