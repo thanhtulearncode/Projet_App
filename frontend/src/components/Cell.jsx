@@ -15,7 +15,10 @@ const Cell = ({
     playerColors, 
     gamePhase, 
     isLastPawnPosition,
-    animateMove // <-- nouvelle prop
+    isLastPawnDestination, 
+    isLastEPCPosition,
+    isLastEPCDestination,
+    animateMove 
 }) => {
     // Construire la classe CSS avec toutes les conditions
     let cellClassName = 'cell';
@@ -36,6 +39,18 @@ const Cell = ({
     // Ajouter la classe pour la position d'origine du pion
     if (isLastPawnPosition) {
         cellClassName += ' last-pawn-position';
+    }
+
+    if (isLastPawnDestination) {
+        cellClassName += ' last-pawn-destination';
+    }
+
+    if (isLastEPCPosition) {
+        cellClassName += ' last-pawn-postition';
+    }
+
+    if (isLastEPCDestination) {
+        cellClassName += ' last-pawn-destination';   
     }
 
     return (

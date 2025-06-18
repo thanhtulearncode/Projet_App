@@ -90,6 +90,11 @@ button:hover {
   background: #b58863;
 }
 
+.row:nth-child(even) .cell:nth-child(even),
+.row:nth-child(odd) .cell:nth-child(odd) {
+  background: #f0d9b5;
+}
+
 .cell.selected, .cell.valid-move {
   box-shadow: 0 0 0 3px #ffd200, 0 2px 8px #0006;
   z-index: 2;
@@ -383,9 +388,16 @@ button:hover {
 
 /* Modifier les styles pour la position d'origine du pion */
 
-.last-pawn-position {
+.cell.last-pawn-position {
   animation: pulsate 1.5s infinite alternate;
-  box-shadow: 0 0 0 2px rgba(255, 204, 0, 0.5) !important; /* Rendre moins visible */
+  background: #ffc99d !important;
+  box-shadow: 0 0 0 1px rgba(255, 204, 0, 0.5) !important; /* Rendre moins visible */
+}
+
+.cell.last-pawn-destination {
+  animation: pulsate 1.5s infinite alternate;
+  background: #93ffa5be !important;
+  box-shadow: 0 0 0 1px rgba(0, 255, 26, 0.5) !important; /* Rendre moins visible */
 }
 
 @keyframes pulsate {
@@ -458,7 +470,7 @@ button:hover {
 }
 
 .piece-animate-move {
-  animation: pieceMove 0.35s cubic-bezier(.4,2,.6,1) 1;
+  animation: pieceMove 1s cubic-bezier(.4,2,.6,1) 1;
 }
 
 .game-flex-container {

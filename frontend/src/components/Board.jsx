@@ -10,7 +10,9 @@ const Board = ({
   playerColors,
   gamePhase,
   lastPawnPosition,
-  lastMoveDest // <-- nouvelle prop
+  lastMoveDest,
+  lastEPCPosition,
+  lastEPCDestination
 }) => {
   return (
     <div className="board">
@@ -33,10 +35,22 @@ const Board = ({
                                        lastPawnPosition.row === rowIndex && 
                                        lastPawnPosition.col === colIndex;
             
+            const isLastPawnDestination = lastMoveDest &&
+              lastMoveDest.row === rowIndex &&
+              lastMoveDest.col === colIndex;
+
             // Déterminer si cette cellule doit animer la pièce
             const animateMove = lastMoveDest &&
               lastMoveDest.row === rowIndex &&
               lastMoveDest.col === colIndex;
+
+            // Déterminer si c'est la position d'origine de l'EPC
+            const isLastEPCPosition = lastEPCPosition &&  
+              lastEPCPosition.row === rowIndex && 
+              lastEPCPosition.col === colIndex;
+            const isLastEPCDestination = lastEPCDestination &&
+              lastEPCDestination.row === rowIndex &&
+              lastEPCDestination.col === colIndex;
             return (
               <Cell
                 key={colIndex}
@@ -47,6 +61,9 @@ const Board = ({
                 playerColors={playerColors}
                 gamePhase={gamePhase}
                 isLastPawnPosition={isLastPawnPosition}
+                isLastPawnDestination={isLastPawnDestination}
+                isLastEPCPosition={isLastEPCPosition}
+                isLastEPCDestination={isLastEPCDestination}
                 animateMove={animateMove}
               />
             );

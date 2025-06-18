@@ -7,7 +7,6 @@ function App() {
   const [showMenu, setShowMenu] = useState(true);
   const [gameSettings, setGameSettings] = useState({ mode: null, difficulty: null });
 
-  // Fix: Sử dụng template literal đúng cách với backticks
   const appStyle = {
     backgroundImage: `url(${backgroundImage})`,
     backgroundSize: 'cover',
@@ -17,7 +16,7 @@ function App() {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'column' // Thêm nếu bạn muốn các thành phần xếp theo chiều dọc
+    flexDirection: 'column' 
   };
 
   const handleStartGame = (settings) => {

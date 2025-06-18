@@ -138,11 +138,15 @@ def ai_move(data: dict = {}):
                         print(f"[IA] Attaquez et déplacez les pions capturés vers {random_dest}")
                     elif success:
                         print(f"[IA] Attaque sans repositionnement : {start_pos} -> {end_pos}")
+                move_position = start_pos
+                move_destination = end_pos
             elif action_type == 'stack_pieces':
                 success = game.stack_pieces(start_pos[0], start_pos[1], end_pos[0], end_pos[1])
                 if not success:
                     print(f"Échec du mouvement de pile: {start_pos} -> {end_pos}")
-                    return {"success": False, "message": "Échec du coup AI"}           
+                    return {"success": False, "message": "Échec du coup AI"}
+                epc_posititon = start_pos
+                epc_destination = end_pos           
             else:
                 print(f"Action inconnue: {action_type}")
                 print(f"Action: {action_type}, Start: {start_pos}, End: {end_pos}, Success: {success}")
@@ -155,7 +159,11 @@ def ai_move(data: dict = {}):
         return {
             "success": success,
             "current_player": game.current_player,
-            "state": game.get_state()
+            "board": game.get_state(),
+            "pawnPosition": move_position,
+            "pawnDestination": move_destination,
+            "EPCPosition": epc_posititon,
+            "EPCDestination": epc_destination
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
