@@ -71,7 +71,34 @@ class GameEngine:
                             "position": piece.position
                         })
         return board
+    
+    def set_state(self, board_state):
+        self.board = [[[] for _ in range(8)] for _ in range(8)]
+        for row in range(8):
+            for col in range(8):
+                for piece_data in board_state[row][col]:
+                    if piece_data["type"] == "Square":
+                        piece = Square(piece_data["color"], tuple(piece_data["position"]))
+                    elif piece_data["type"] == "Pawn":
+                        piece = Pawn(piece_data["color"], tuple(piece_data["position"]))
+                    else:
+                        continue  # Ignore unknown types
+                    self.board[row][col].append(piece)
+                    
+    def set_current_player(self, color):
+        """Permet de changer le joueur courant"""
+        pair_colors = self.color_pair.split('-')
+        if color in pair_colors:
+            self.current_player = color
+        else:
+            raise ValueError("Invalid player color. Must be 'white' or 'black'.")
 
+    def update(self, board_state, current_player):
+        """Met à jour l'état du jeu avec un nouvel état de plateau et le joueur courant"""
+        self.set_state(board_state)
+        self.set_current_player(current_player)
+        self.game_over = False
+    
     def get_valid_moves(self, x, y):
         valid_moves = []
         if self.board[x][y]:

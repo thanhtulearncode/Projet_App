@@ -71,15 +71,23 @@ const Game = ({ settings }) => {
   const fetchValidMoves = async (row, col) => {
     try {
       const params = new URLSearchParams({
-        mode: settings?.mode || 'local',
-        difficulty: settings?.difficulty || 'medium',
         colorPair: settings?.colorPair || 'black-white'
       });
-      const response = await fetch(`http://localhost:8000/valid_moves/${row}/${col}?${params}`);
+      const response = await fetch(`http://localhost:8000/valid_moves`,{
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          board: board,
+          currentPlayer: playerColors[currentPlayer],
+          row: row,
+          col: col
+        })
+      });
       if (!response.ok) throw new Error('Erreur réseau');
       const data = await response.json();
       setValidMoves(Array.isArray(data) ? data : data.validMoves || []);
     } catch (error) {
+      console.error('Erreur lors de la récupération des mouvements valides:', error);
       setMessage('Erreur lors de la récupération des mouvements valides');
     }
   };
@@ -90,7 +98,17 @@ const Game = ({ settings }) => {
       const params = new URLSearchParams({
         colorPair: settings?.colorPair || 'black-white'
       });
-      const response = await fetch(`http://localhost:8000/valid_moves/${row}/${col}?${params}`);
+      const response = await fetch(`http://localhost:8000/valid_moves`,{
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          board: board,
+          currentPlayer: playerColors[currentPlayer],
+          row: row,
+          col: col,
+          params: params.toString()
+        })
+      });
       if (!response.ok) throw new Error(`Erreur réseau: ${response.status}`);
       const data = await response.json();
       setValidEPCMoves(Array.isArray(data) ? data : data.validMoves || []);
@@ -160,6 +178,8 @@ const Game = ({ settings }) => {
       // Capture
       try {
         const attackBody = {
+          board: board,
+          currentPlayer: playerColors[currentPlayer],
           start_row: selectedPiece.row,
           start_col: selectedPiece.col,
           end_row: row,
@@ -200,6 +220,8 @@ const Game = ({ settings }) => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            board: board,
+            currentPlayer: playerColors[currentPlayer],
             start_row: selectedPiece.row,
             start_col: selectedPiece.col,
             end_row: row,
@@ -226,6 +248,8 @@ const Game = ({ settings }) => {
     if (!pendingCaptured || !pendingCaptured.validDest.some(move => move[0] === row && move[1] === col)) return;
     try {
       const body = {
+        board: board,
+        currentPlayer: playerColors[currentPlayer],
         start_row: pendingCaptured.from.row,
         start_col: pendingCaptured.from.col,
         end_row: pendingCaptured.to.row,
@@ -258,6 +282,8 @@ const Game = ({ settings }) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          board: board,
+          currentPlayer: playerColors[currentPlayer],
           src_row: selectedEPC.row,
           src_col: selectedEPC.col,
           dst_row: row,
@@ -293,7 +319,8 @@ const Game = ({ settings }) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          board,
+          board : board,
+          currentPlayer: playerColors[currentPlayer],
           playerColor: playerColors.player2,
           difficulty: settings?.difficulty || 'medium',
           colorPair: settings?.colorPair || 'black-white'
@@ -370,7 +397,14 @@ const Game = ({ settings }) => {
   // Vérifie la fin du jeu
   const checkGameOver = async () => {
     try {
-      const response = await fetch('http://localhost:8000/is_game_over');
+      const response = await fetch('http://localhost:8000/is_game_over', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          board: board,
+          currentPlayer: playerColors[currentPlayer]
+        })    
+      });
       if (!response.ok) throw new Error('Erreur réseau');
       const data = await response.json();
       if (data.game_over) {

@@ -74,6 +74,10 @@ button:hover {
   display: contents;
 }
 
+.row:nth-child(even) .cell:nth-child(even),
+.row:nth-child(odd) .cell:nth-child(odd) {
+  background: #f0d9b5;
+}
 
 .cell {
   position: relative;

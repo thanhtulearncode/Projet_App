@@ -5,7 +5,7 @@ from AI import GameAI
 import random
 
 app = FastAPI()
-game = GameEngine()
+#game = GameEngine()
 
 # Configuration CORS pour le développement
 app.add_middleware(
@@ -17,21 +17,37 @@ app.add_middleware(
 
 @app.get("/board")
 def get_board(colorPair: str = "black-white"):
-    global game
+    game = GameEngine()
     if game.color_pair != colorPair:
         game = GameEngine(color_pair=colorPair)
     return game.get_state()
 
-@app.get("/valid_moves/{row}/{col}")
-def get_valid_moves(row: int, col: int):
+@app.post("/valid_moves")
+def get_valid_moves(data:dict):
     try:
+        game = GameEngine()
+        board = data.get('board', None)
+        current_player = data.get('currentPlayer', None)
+        row = data['row']
+        print(f"Row: {row}")
+        col = data['col']
+        print(f"Col: {col}")
+        game.update(board, current_player)
+        print(f"Getting valid moves for position: ({row}, {col})")
         return game.get_valid_moves(row, col)
+        
     except Exception as e:
+        print(f"Error in /valid_moves: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/move_pawn")
 async def make_move(data: dict):
     try:
+        game = GameEngine()
+        board = data.get('board', None)
+        current_player = data.get('currentPlayer', None)
+        if board is not None:
+            game.update(board, current_player)
         start_row = data['start_row']
         start_col = data['start_col']
         end_row = data['end_row']
@@ -49,7 +65,7 @@ async def make_move(data: dict):
     
 @app.post("/reset")
 def reset_game(request: Request):
-    global game
+    game = GameEngine()
     colorPair = "black-white"
     try:
         data = request.query_params
@@ -66,6 +82,11 @@ def reset_game(request: Request):
 @app.post("/move_square")
 def move_square(data: dict):
     try:
+        game = GameEngine()
+        board = data.get('board', None)
+        current_player = data.get('currentPlayer', None)
+        if board is not None:
+            game.update(board, current_player)
         src_row = data['src_row']
         src_col = data['src_col']
         dst_row = data['dst_row']
@@ -82,6 +103,11 @@ def move_square(data: dict):
 @app.post("/attack_pion")
 def attack_pion_api(data: dict):
     try:
+        game = GameEngine()
+        board = data.get('board', None)
+        current_player = data.get('currentPlayer', None)
+        if board is not None:
+            game.update(board, current_player)
         start_row = data['start_row']
         start_col = data['start_col']
         end_row = data['end_row']
@@ -100,8 +126,16 @@ def attack_pion_api(data: dict):
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/is_game_over")
-def is_game_over():
+def is_game_over(data: dict = {}):
     # Utilise la méthode check_game_over existante
+    game = GameEngine()
+    try:
+        board = data.get('board', None)
+        current_player = data.get('currentPlayer', None)
+        if board is not None:
+            game.update(board, current_player)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid board data")
     if game.check_game_over():
         return {"game_over": True, "winner": game.get_winner()}
     return {"game_over": False, "winner": None}
@@ -111,6 +145,14 @@ def ai_move(data: dict = {}):
     #cnt = 0
     #if cnt > 0:
     #     return {"success": False, "message": "L'IA a déjà joué ce tour"}
+    game = GameEngine()
+    try:
+        board = data.get('board', None)
+        current_player = data.get('currentPlayer', None)
+        if board is not None:
+            game.update(board, current_player)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid board data")
     try:
         print("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
         try:
