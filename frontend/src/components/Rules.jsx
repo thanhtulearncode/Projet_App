@@ -1,9 +1,14 @@
 import React from 'react';
+import './Rules.css';
 
 const Rules = ({ onClose }) => {
   return (
-    <div className="rules-modal">
-      <div className="rules-content">
+    <div className="rules-modal" onClick={onClose}>
+      <div className="rules-content" onClick={(e) => e.stopPropagation()}>
+        <button className="close-rules-button" onClick={onClose}>
+          ×
+        </button>
+        
         <h2>Règles du jeu Wall Street</h2>
         
         <h3>Présentation</h3>
@@ -34,8 +39,6 @@ const Rules = ({ onClose }) => {
         <p>La partie s'arrête à l'instant où un joueur, qui devrait déplacer un EPC, ne peut plus le faire.</p>
         <p>Le gagnant est celui qui a le plus de pions situés sur des buildings.</p>
         <p>En cas d'égalité, le vainqueur est celui qui possède le plus de pions situés sur des EPC de 4 pièces, puis de 3, etc.</p>
-        
-        <button className="close-rules-button" onClick={onClose}>Fermer</button>
       </div>
     </div>
   );
