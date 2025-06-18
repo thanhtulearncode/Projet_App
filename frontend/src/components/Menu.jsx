@@ -77,6 +77,47 @@ function Menu({ onStartGame }) {
     }
   };
 
+  const getDifficultyInfo = (difficulty) => {
+    switch (difficulty) {
+      case 'easy':
+        return {
+          name: 'Facile',
+          emoji: '😊',
+          description: 'Mouvements aléatoires',
+          details: 'Parfait pour les débutants. L\'IA fait des mouvements aléatoires mais valides.',
+          speed: 'Très rapide (< 0.1s)',
+          strategy: 'Aucune stratégie'
+        };
+      case 'medium':
+        return {
+          name: 'Moyen',
+          emoji: '😐',
+          description: 'Stratégie basique',
+          details: 'Niveau équilibré. L\'IA utilise un algorithme MinMax avec profondeur limitée.',
+          speed: 'Rapide (0.1-1s)',
+          strategy: 'Stratégie basique'
+        };
+      case 'hard':
+        return {
+          name: 'Difficile',
+          emoji: '😈',
+          description: 'Stratégie avancée',
+          details: 'Pour les joueurs expérimentés. L\'IA utilise un algorithme MinMax approfondi.',
+          speed: 'Lent (1-10s)',
+          strategy: 'Stratégie avancée'
+        };
+      default:
+        return {
+          name: 'Inconnu',
+          emoji: '🤖',
+          description: 'Niveau non défini',
+          details: 'Niveau de difficulté non reconnu.',
+          speed: 'Variable',
+          strategy: 'Variable'
+        };
+    }
+  };
+
   // Plateau animé en arrière-plan
   const renderBoardBackground = () => {
     return (
@@ -184,7 +225,7 @@ function Menu({ onStartGame }) {
                 </div>
                 <div className="card-content">
                   <h3>Joueur vs IA</h3>
-                  <p>Défiez l'intelligence artificielle</p>
+                  <p>Défiez l'intelligence artificielle avec 3 niveaux de difficulté</p>
                 </div>
               </div>
             </div>
@@ -195,46 +236,26 @@ function Menu({ onStartGame }) {
           </div>
         ) : showDifficultySelection ? (
           <div className="submenu difficulty-selection">
-            <h2>Niveau de difficulté</h2>
+            <h2>Niveau de difficulté de l'IA</h2>
             <div className="selection-options">
-              <div 
-                className={`selection-card ${selectedDifficulty === 'easy' ? 'selected' : ''}`}
-                onClick={() => handleDifficultySelect('easy')}
-              >
-                <div className="card-icon easy">
-                  <i className="fas fa-child"></i>
-                </div>
-                <div className="card-content">
-                  <h3>Facile</h3>
-                  <p>Pour les débutants ou parties détendues</p>
-                </div>
-              </div>
-              
-              <div 
-                className={`selection-card ${selectedDifficulty === 'medium' ? 'selected' : ''}`}
-                onClick={() => handleDifficultySelect('medium')}
-              >
-                <div className="card-icon medium">
-                  <i className="fas fa-user"></i>
-                </div>
-                <div className="card-content">
-                  <h3>Moyen</h3>
-                  <p>Pour les joueurs réguliers</p>
-                </div>
-              </div>
-              
-              <div 
-                className={`selection-card ${selectedDifficulty === 'hard' ? 'selected' : ''}`}
-                onClick={() => handleDifficultySelect('hard')}
-              >
-                <div className="card-icon hard">
-                  <i className="fas fa-chess-king"></i>
-                </div>
-                <div className="card-content">
-                  <h3>Difficile</h3>
-                  <p>Pour les joueurs expérimentés</p>
-                </div>
-              </div>
+              {['easy', 'medium', 'hard'].map(difficulty => {
+                const info = getDifficultyInfo(difficulty);
+                return (
+                  <div 
+                    key={difficulty}
+                    className={`selection-card ${selectedDifficulty === difficulty ? 'selected' : ''}`}
+                    onClick={() => handleDifficultySelect(difficulty)}
+                  >
+                    <div className={`card-icon ${difficulty}`}>
+                      <span className="difficulty-emoji">{info.emoji}</span>
+                    </div>
+                    <div className="card-content">
+                      <h3>{info.name}</h3>
+                      <p className="difficulty-description">{info.description}</p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
             
             <button className="back-button" onClick={() => {

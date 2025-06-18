@@ -1,17 +1,35 @@
 from piece import *
 from Action import *
 from AI import GameAI
-from ia import MinMaxAI, RandomAI
+from ia import MinMaxAI, RandomAI, AIFactory, EasyAI, MediumAI, HardAI
 
 class GameEngine:
-    def __init__(self, color_pair='black-white'):
+    def __init__(self, color_pair='black-white', ai_difficulty='medium'):
         self.color_pair = color_pair
         self.board = self.create_initial_board()
         self.current_player = 'white'  
         self.game_over = False
-        #self.ai = GameAI('hard', 'white')  # Initialisation de l'IA pour le joueur blanc
-        #self.ai = RandomAI('black', depth=2)  # Initialisation de l'IA pour le joueur blanc
-        self.ai = MinMaxAI('black', depth=3)  # Initialisation de l'IA pour le joueur noir
+        
+        # Initialize AI with the new difficulty system
+        self.ai_difficulty = ai_difficulty
+        self.ai = AIFactory.create_ai(ai_difficulty, 'black')
+        
+        print(f"[GameEngine] Initialized with {ai_difficulty} AI for black player")
+        
+    def set_ai_difficulty(self, difficulty):
+        """
+        Change the AI difficulty level
+        
+        Args:
+            difficulty (str): 'easy', 'medium', or 'hard'
+        """
+        self.ai_difficulty = difficulty
+        self.ai = AIFactory.create_ai(difficulty, 'black')
+        print(f"[GameEngine] AI difficulty changed to {difficulty}")
+        
+    def get_ai_difficulty(self):
+        """Get the current AI difficulty level"""
+        return self.ai_difficulty
         
     def create_initial_board(self):
         board = [[[] for _ in range(8)] for _ in range(8)]
@@ -37,7 +55,7 @@ class GameEngine:
         return board
 
     def clone(self):
-        new_engine = GameEngine(self.color_pair)
+        new_engine = GameEngine(self.color_pair, self.ai_difficulty)
         new_engine.board = [[stack.copy() for stack in row] for row in self.board]
         new_engine.current_player = self.current_player
         new_engine.game_over = self.game_over
