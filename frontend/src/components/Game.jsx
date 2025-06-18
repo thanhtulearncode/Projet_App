@@ -31,11 +31,19 @@ const Game = ({ settings }) => {
 
   // Définir les couleurs des joueurs
   const getPlayerColors = () => {
+    if (settings?.colorPair?.startsWith('custom-')) {
+      const idx = parseInt(settings.colorPair.split('-')[1], 10);
+      const pair = settings.customColorPairs?.[idx];
+      if (pair) {
+        return { player1: pair.color1, player2: pair.color2 };
+      }
+    }
     switch (settings?.colorPair) {
       case 'red-green':
         return { player1: 'red', player2: 'green' };
       case 'orange-blue':
         return { player1: 'orange', player2: 'blue' };
+      
       default:
         return { player1: 'white', player2: 'black' };
     }
@@ -63,6 +71,15 @@ const Game = ({ settings }) => {
     } else {
       setLastEPCDestination(null);
     }
+  };
+
+  const getCustomColors = () => {
+    if (settings?.colorPair?.startsWith('custom-')) {
+      const idx = parseInt(settings.colorPair.split('-')[1], 10);
+      const pair = settings.customColorPairs?.[idx];
+      if (pair) return { color1: pair.color1, color2: pair.color2 };
+    }
+    return {};
   };
 
   useEffect(() => {
@@ -125,7 +142,13 @@ const Game = ({ settings }) => {
   const fetchBoard = async () => {
     try {
       const params = new URLSearchParams({
-        colorPair: settings?.colorPair || 'black-white'
+        colorPair: settings.colorPair,
+        ...(settings.colorPair.startsWith('custom-') && settings.customColorPairs
+          ? {
+              color1: settings.customColorPairs[parseInt(settings.colorPair.split('-')[1], 10)].color1,
+              color2: settings.customColorPairs[parseInt(settings.colorPair.split('-')[1], 10)].color2,
+            }
+          : {})
       });
       const response = await fetch(`http://localhost:8000/board?${params}`);
       if (!response.ok) throw new Error('Erreur réseau');
@@ -151,7 +174,8 @@ const Game = ({ settings }) => {
       const params = new URLSearchParams({
         mode: settings?.mode || 'local',
         difficulty: settings?.difficulty || 'medium',
-        colorPair: settings?.colorPair || 'black-white'
+        colorPair: settings?.colorPair || 'black-white',
+        ...getCustomColors()
       });
       const response = await fetch(`http://localhost:8000/valid_moves/${row}/${col}?${params}`);
       if (!response.ok) throw new Error('Erreur réseau');
@@ -166,7 +190,8 @@ const Game = ({ settings }) => {
   const fetchValidEPCMoves = async (row, col) => {
     try {
       const params = new URLSearchParams({
-        colorPair: settings?.colorPair || 'black-white'
+        colorPair: settings?.colorPair || 'black-white',
+        ...getCustomColors()
       });
       const response = await fetch(`http://localhost:8000/valid_moves/${row}/${col}?${params}`);
       if (!response.ok) throw new Error(`Erreur réseau: ${response.status}`);
@@ -371,7 +396,11 @@ const Game = ({ settings }) => {
       setMessage(`L'IA ${getDifficultyName(currentAIDifficulty)} réfléchit...`);
       const startTime = Date.now();
       
-      const response = await fetch('http://localhost:8000/ai_move', {
+      const params = new URLSearchParams({
+        colorPair: settings?.colorPair || 'black-white',
+        ...getCustomColors()
+      });
+      const response = await fetch(`http://localhost:8000/ai_move?${params}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({})
@@ -419,7 +448,8 @@ const Game = ({ settings }) => {
     try {
       const params = new URLSearchParams({
         colorPair: settings?.colorPair || 'black-white',
-        ai_difficulty: currentAIDifficulty
+        ai_difficulty: currentAIDifficulty,
+        ...getCustomColors()
       });
       await fetch(`http://localhost:8000/reset?${params}`, { method: 'POST' });
       fetchBoard();

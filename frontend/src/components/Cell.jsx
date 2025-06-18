@@ -87,6 +87,7 @@ const Cell = ({
                             stackIndex={index}
                             stackHeight={stack.length}
                             isFullscreen={isFullscreen}
+                            playerColors={playerColors}
                         />
                     </div>
                 </div>

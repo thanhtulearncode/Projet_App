@@ -1,6 +1,15 @@
 import React from 'react';
 
-const Piece = ({ type, color, stackIndex, stackHeight, isFullscreen }) => {
+const Piece = ({ type, color, stackIndex, stackHeight, isFullscreen, playerColors }) => {
+    // Map color to custom color if needed
+    let trueColor = color;
+    if (playerColors) {
+        if (color === 'white' || color === 'player1') {
+            trueColor = playerColors.player1;
+        } else if (color === 'black' || color === 'player2') {
+            trueColor = playerColors.player2;
+        }
+    }
     // Style différent pour les pièces carrées et rondes
     const getStyle = () => {
         // Calculer la taille en fonction du mode d'affichage
@@ -29,7 +38,7 @@ const Piece = ({ type, color, stackIndex, stackHeight, isFullscreen }) => {
         
         if (type === 'round') {
             let background, borderColor, shadow;
-            switch (color) {
+            switch (trueColor) {
                 case 'black':
                     background = 'radial-gradient(circle at 30% 30%, #444 60%, #000 100%)';
                     borderColor = '#222';
@@ -61,8 +70,8 @@ const Piece = ({ type, color, stackIndex, stackHeight, isFullscreen }) => {
                     shadow = '0 2px 8px #2980b9aa';
                     break;
                 default:
-                    background = '#fff';
-                    borderColor = '#999';
+                    background = trueColor;
+                    borderColor = trueColor;
                     shadow = '0 2px 8px #8888';
             }
             return {
