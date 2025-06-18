@@ -71,6 +71,8 @@ function App() {
     return '';
   };
 
+  // Modification de la partie return pour ajuster la position de l'indicateur de mode
+
   return (
     <div className={`app-container ${transition ? 'transitioning' : ''}`}>
       {isLoading && (
@@ -82,26 +84,18 @@ function App() {
       
       {showMenu ? (
         <div className={`menu-view ${transition ? 'fade-out' : 'fade-in'}`}>
-          <Menu 
-            onStartGame={handleStartGame} 
-            musicEnabled={musicEnabled}
-            setMusicEnabled={setMusicEnabled}
-            musicVolume={musicVolume}
-            setMusicVolume={setMusicVolume}
-          />
+          <Menu onStartGame={handleStartGame} />
         </div>
       ) : (
         <div className={`game-view ${transition ? 'fade-out' : 'fade-in'}`}>
           <button className="back-to-menu" onClick={handleBackToMenu}>
             <i className="fas fa-arrow-left"></i> Menu
           </button>
-          <div className="game-mode-indicator" style={{ marginBottom: '10px', fontWeight: 'bold', color: '#fff' }}>
+          {/* La ligne de l'indicateur de mode est commentée pour ne pas l'afficher du tout */}
+          {/* <div className="game-mode-indicator" style={{ marginBottom: '10px', fontWeight: 'bold', color: '#fff' }}>
             Mode: {getGameModeText()}
-          </div>
-          <Game 
-            settings={gameSettings} 
-            onBackToMenu={handleBackToMenu} 
-          />
+          </div> */}
+          <Game settings={gameSettings} />
         </div>
       )}
       

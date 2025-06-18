@@ -616,75 +616,91 @@ const Game = ({ settings }) => {
 
   return (
     <div className="game">
-      <div className="game-flex-container">
-        <div className="game-board-zone">
-          {board.length > 0 ? (
-            <Board 
-              board={board} 
-              selectedPiece={gamePhase === 'move_pawn' ? selectedPiece : null}
-              selectedEPC={gamePhase === 'move_epc' ? selectedEPC : null}
-              validMoves={gamePhase === 'move_pawn' ? validMoves : validEPCMoves}
-              onCellClick={handleCellClick}
-              playerColors={playerColors}
-              gamePhase={gamePhase}
-              lastPawnPosition={lastPawnPosition}
-              lastMoveDest={lastPawnDestination}
-              lastEPCPosition={lastEPCPosition}
-              lastEPCDestination={lastEPCDestination}
-            />
-          ) : (
-            <p>Chargement du plateau...</p>
-          )}
+      {/* Fond avec effet radial */}
+      <div className="game-background">
+        <div className="game-logo-background"></div>
+        <div className="animated-logo">
+          <div className="logo-building"></div>
+          <div className="logo-building"></div>
+          <div className="logo-building"></div>
         </div>
-        <div className="game-info-panel">
-          <button className="rules-side-button" onClick={() => setShowRules(true)}>
+      </div>
+      
+      <div className="game-proverb">
+        "Focus To Win, Strategy To Conquer"
+      </div>
+      
+      {/* Contrôles en haut - sans texte explicatif */}
+      <div className="game-top-controls">
+        <div className="current-player-indicator">
+          <div 
+            className="player-color-marker" 
+            style={{backgroundColor: playerColors[currentPlayer]}}
+          ></div>
+        </div>
+        
+        <div className="game-actions">
+          {gamePhase === 'move_epc' && (
+            <button className="action-button skip-button" onClick={skipEPCMove}>
+              Passer
+            </button>
+          )}
+          
+          <button className="action-button reset-button" onClick={resetGame}>
+            Nouvelle partie
+          </button>
+          
+          <button className="action-button rules-button" onClick={() => setShowRules(true)}>
             Règles
           </button>
-          {settings?.mode === 'ai' && (
-            <div className="ai-controls">
-              <div className="ai-indicator">
-                IA: {getDifficultyName(currentAIDifficulty)} {getDifficultyEmoji(currentAIDifficulty)}
-              </div>
+        </div>
+        
+        {settings?.mode === 'ai' && (
+          <div className="ai-badge">
+            <div className="ai-level">
+              {getDifficultyEmoji(currentAIDifficulty)}
               <button 
-                className="change-ai-difficulty-button"
+                className="ai-level-button"
                 onClick={() => setShowDifficultySelector(true)}
                 disabled={aiState}
               >
-                Changer niveau
+                {getDifficultyName(currentAIDifficulty)}
               </button>
-              {aiMoveTime && (
-                <div className="ai-move-time">
-                  Dernier coup: {aiMoveTime.toFixed(2)}s
-                </div>
-              )}
             </div>
-          )}
-          <div className="color-indicator">
-            Couleurs: {getColorName(playerColors.player1)} vs {getColorName(playerColors.player2)}
           </div>
-          <div className="message">{message}</div>
-          <div className="current-player">
-            Joueur actuel: {getColorName(playerColors[currentPlayer])}
-          </div>
-          <div className="game-phase">
-            Phase: {gamePhase === 'move_pawn' 
-              ? 'Déplacement de pion' 
-              : 'Déplacement d\'un EPC au choix'}
-          </div>
-          {gamePhase === 'move_epc' && (
-            <div className="phase-help">
-              Sélectionnez n'importe quel EPC sans pion pour le déplacer
-            </div>
-          )}
-          {gamePhase === 'move_epc' && (
-            <button className="skip-button" onClick={skipEPCMove}>
-              Passer le déplacement d'EPC
-            </button>
-          )}
-          <button onClick={resetGame} className="reset-button">Nouvelle partie</button>
-          {showRules && <Rules onClose={() => setShowRules(false)} />}
-        </div>
+        )}
       </div>
+      
+      {/* Toast pour les messages - centré */}
+      {message && <div className="message-toast">{message}</div>}
+      
+      {/* Plateau centré avec effet radial en arrière-plan */}
+      <div className="game-board-center">
+        <div className="board-logo-background"></div>
+        {board.length > 0 ? (
+          <Board 
+            board={board} 
+            selectedPiece={gamePhase === 'move_pawn' ? selectedPiece : null}
+            selectedEPC={gamePhase === 'move_epc' ? selectedEPC : null}
+            validMoves={gamePhase === 'move_pawn' ? validMoves : validEPCMoves}
+            onCellClick={handleCellClick}
+            playerColors={playerColors}
+            gamePhase={gamePhase}
+            lastPawnPosition={lastPawnPosition}
+            lastMoveDest={lastPawnDestination}
+            lastEPCPosition={lastEPCPosition}
+            lastEPCDestination={lastEPCDestination}
+            currentPlayer={currentPlayer}
+          />
+        ) : (
+          <div className="loading-board">
+            <div className="spinner"></div>
+            <p>Chargement du plateau...</p>
+          </div>
+        )}
+      </div>
+      
+      {showRules && <Rules onClose={() => setShowRules(false)} />}
       {gameOver && (
         <div className="game-over">
           <h2>Fin de la partie</h2>
@@ -693,9 +709,6 @@ const Game = ({ settings }) => {
         </div>
       )}
       <AIDifficultySelector />
-      <div className="turn-timer">
-        Temps restant : {timer}s
-      </div>
     </div>
   );
 };
