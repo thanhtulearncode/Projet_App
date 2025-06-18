@@ -1,11 +1,14 @@
 import React from 'react';
 
-const Piece = ({ type, color, stackIndex, stackHeight }) => {
+const Piece = ({ type, color, stackIndex, stackHeight, isFullscreen }) => {
     // Style différent pour les pièces carrées et rondes
     const getStyle = () => {
+        // Calculer la taille en fonction du mode d'affichage
+        const baseSize = isFullscreen ? '60px' : '38px';
+        
         const baseStyle = {
-            width: '38px',
-            height: '38px',
+            width: baseSize,
+            height: baseSize,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -68,7 +71,7 @@ const Piece = ({ type, color, stackIndex, stackHeight }) => {
                 background,
                 border: `2.5px solid ${borderColor}`,
                 boxShadow: shadow,
-                transform: 'scale(0.85)',
+                transform: isFullscreen ? 'scale(0.9)' : 'scale(0.85)',
             };
         }
         return baseStyle;
