@@ -18,7 +18,8 @@ const Cell = ({
     isLastPawnDestination, 
     isLastEPCPosition,
     isLastEPCDestination,
-    animateMove 
+    animateMove,
+    isFullscreen // <-- Nouvelle prop
 }) => {
     // Construire la classe CSS avec toutes les conditions
     let cellClassName = 'cell';
@@ -62,8 +63,8 @@ const Cell = ({
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                width: '64px',
-                height: '64px',
+                width: isFullscreen ? '100%' : '64px',
+                height: isFullscreen ? '100%' : '64px',
             }}
         >
             {/* Affiche toutes les pièces de la pile avec positionnement relatif */}
@@ -73,7 +74,9 @@ const Cell = ({
                     style={{
                         position: 'absolute',
                         zIndex: index, // Pièces du dessous ont zIndex plus bas
-                        transform: `translate(0, ${-index * 2}px)`, // Décalage vertical pour l'effet d'empilement
+                        transform: isFullscreen 
+                            ? `translate(0, ${-index * 3}px) scale(${1 + index * 0.02})` 
+                            : `translate(0, ${-index * 2}px)`, // Décalage adapté selon le mode d'affichage
                     }}
                 >
                     <div className={animateMove && index === stack.length - 1 ? "piece-animate-move" : ""}>
@@ -83,21 +86,22 @@ const Cell = ({
                             height={piece.height}
                             stackIndex={index}
                             stackHeight={stack.length}
+                            isFullscreen={isFullscreen}
                         />
                     </div>
                 </div>
             ))}
             
-            {/* Badge de hauteur de pile carrée */}
+            {/* Badge de hauteur de pile carrée - plus grand en mode plein écran */}
             {stack.filter(piece => mapType(piece.type) === 'square').length > 0 && (
-                <span className="stack-badge">
+                <span className={`stack-badge ${isFullscreen ? 'fullscreen' : ''}`}>
                     {stack.filter(piece => mapType(piece.type) === 'square').length}
                 </span>
             )}
             
             {/* Indicateur visuel pour la position d'origine du pion */}
             {isLastPawnPosition && gamePhase === 'move_epc' && (
-                <div className="last-pawn-indicator">
+                <div className={`last-pawn-indicator ${isFullscreen ? 'fullscreen' : ''}`}>
                     Position précédente
                 </div>
             )}
