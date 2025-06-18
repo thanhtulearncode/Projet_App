@@ -10,21 +10,43 @@ const Game = ({ settings }) => {
   const [currentPlayer, setCurrentPlayer] = useState('player1');
   const [message, setMessage] = useState('Chargement du jeu...');
   const [pendingCaptured, setPendingCaptured] = useState(null);
-  // Gestion EPC
+  // Gestion Animation, mouvements et phases
   const [gamePhase, setGamePhase] = useState('move_pawn'); // 'move_pawn' ou 'move_epc'
   const [selectedEPC, setSelectedEPC] = useState(null);
   const [validEPCMoves, setValidEPCMoves] = useState([]);
   const [lastPawnPosition, setLastPawnPosition] = useState(null);
+  const [lastPawnDestination, setLastPawnDestination] = useState(null);
+  const [lastEPCPosition, setLastEPCPosition] = useState(null);
+  const [lastEPCDestination, setLastEPCDestination] = useState(null);
+  // Gestion de la fin de partie
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(null);
   const [showRules, setShowRules] = useState(false);
   // Gestion AI state
   const [aiState, setAIState] = useState(false);
-  // New AI difficulty management
-  const [currentAIDifficulty, setCurrentAIDifficulty] = useState(settings?.difficulty || 'medium');
-  const [showDifficultySelector, setShowDifficultySelector] = useState(false);
-  const [aiMoveTime, setAiMoveTime] = useState(null);
 
+  const handleAnimation = (lastPawnPosition, lastPawnDestination, lastEPCPosition, lastEPCDestination) => {
+    if (lastPawnPosition !== null) {
+      setLastPawnPosition({row : lastPawnPosition[0],col: lastPawnPosition[1]});
+    } else {
+      setLastPawnPosition(null);
+    }
+    if (lastPawnDestination !== null) {
+      setLastPawnDestination({row : lastPawnDestination[0], col : lastPawnDestination[1]});
+    } else {
+      setLastPawnDestination(null);
+    }  
+    if (lastEPCPosition !== null) {
+      setLastEPCPosition({row : lastEPCPosition[0], col : lastEPCPosition[1]});
+    } else {
+      setLastEPCPosition(null);
+    }
+    if (lastEPCDestination !== null) {
+      setLastEPCDestination({row : lastEPCDestination[0], col : lastEPCDestination[1]});
+    } else {
+      setLastEPCDestination(null);
+    }
+  };
   // Définir les couleurs des joueurs
   const getPlayerColors = () => {
     switch (settings?.colorPair) {
@@ -235,9 +257,9 @@ const Game = ({ settings }) => {
           setMessage('Déplacement effectué');
           setSelectedPiece(null);
           setValidMoves([]);
-          setLastPawnPosition({ row: selectedPiece.row, col: selectedPiece.col });
           setGamePhase('move_epc');
           fetchBoard();
+          handleAnimation(selectedPiece, { row, col }, null, null);
         }
       } catch (error) {
         setMessage('Erreur lors de la capture');
@@ -259,12 +281,10 @@ const Game = ({ settings }) => {
         if (result.success) {
           setMessage('Déplacement effectué');
           setSelectedPiece(null);
-          setValidMoves([]);
-          setLastPawnPosition({ row: selectedPiece.row, col: selectedPiece.col });
           setGamePhase('move_epc');
           fetchBoard();
-        } else {
-          setMessage('Mouvement invalide');
+          setValidMoves([]);
+          setLastPawnPosition({ row: selectedPiece.row, col: selectedPiece.col });          
         }
       } catch (error) {
         setMessage('Erreur lors du déplacement');
@@ -287,16 +307,13 @@ const Game = ({ settings }) => {
         })
       });
       const result = await response.json();
-      if (result.success) {
-        setMessage('Capture et déplacement effectués');
-        setPendingCaptured(null);
-        setValidMoves([]);
-        setLastPawnPosition({ row: pendingCaptured.from.row, col: pendingCaptured.from.col });
-        setGamePhase('move_epc');
-        fetchBoard();
-      } else {
-        setMessage('Erreur lors de la capture');
-      }
+      setPendingCaptured(null);
+      setValidMoves([]);
+      setMessage('Pion capturé déplacé !');
+      setGamePhase('move_epc');
+      fetchBoard();
+      setLastPawnPosition({ row: pendingCaptured.from.row, col: pendingCaptured.from.col });
+      setLastPawnDestination({ row, col });
     } catch (error) {
       setMessage('Erreur lors de la capture');
     }
@@ -321,10 +338,15 @@ const Game = ({ settings }) => {
         setMessage('Déplacement d\'EPC effectué');
         setSelectedEPC(null);
         setValidEPCMoves([]);
-        setLastPawnPosition(null);
         setCurrentPlayer(currentPlayer === 'player1' ? 'player2' : 'player1');
         setGamePhase('move_pawn');
         fetchBoard();
+        setLastPawnPosition(null);
+        setLastPawnDestination(row, col);
+        console.log('mode:', settings?.mode);
+        if (settings?.mode === 'ai') {
+          handleAIPlay();
+        }
       } else {
         setMessage('Mouvement d\'EPC invalide');
       }
@@ -359,7 +381,8 @@ const Game = ({ settings }) => {
         setGamePhase('move_pawn');
         setSelectedPiece(null);
         setValidMoves([]);
-        setLastPawnPosition(null);
+        handleAnimation(data.pawnPosition, data.pawnDestination, data.EPCPosition, data.EPCDestination);
+        
       } else {
         setMessage('L\'IA n\'a pas pu jouer');
         setAIState(false);
@@ -375,7 +398,7 @@ const Game = ({ settings }) => {
     if (gamePhase === 'move_epc') {
       setSelectedEPC(null);
       setValidEPCMoves([]);
-      setLastPawnPosition(null);
+      setLastPawnPosition();
       setCurrentPlayer(currentPlayer === 'player1' ? 'player2' : 'player1');
       setGamePhase('move_pawn');
       setMessage(`C'est maintenant au tour des ${getColorName(playerColors[currentPlayer === 'player1' ? 'player1' : 'player2'])}`);
@@ -395,7 +418,7 @@ const Game = ({ settings }) => {
       setValidMoves([]);
       setSelectedEPC(null);
       setValidEPCMoves([]);
-      setLastPawnPosition(null);
+      handleAnimation(null, null, null, null);
       setCurrentPlayer('player1');
       setGamePhase('move_pawn');
       setAIState(false);
@@ -528,6 +551,9 @@ const Game = ({ settings }) => {
               playerColors={playerColors}
               gamePhase={gamePhase}
               lastPawnPosition={lastPawnPosition}
+              lastMoveDest={lastPawnDestination}
+              lastEPCPosition={lastEPCPosition}
+              lastEPCDestination={lastEPCDestination}
             />
           ) : (
             <p>Chargement du plateau...</p>

@@ -150,6 +150,10 @@ def ai_move(data: dict = {}):
         action_types = [action[0] for action in move]
         start_positions = [action[1] for action in move]
         end_positions = [action[2] for action in move]
+        move_position = None
+        move_destination = None
+        epc_posititon = None    
+        epc_destination = None
         if not move:
             return {"success": False, "message": "Aucun coup possible"}
         for action_type, start_pos, end_pos in zip(action_types, start_positions, end_positions):
@@ -168,11 +172,15 @@ def ai_move(data: dict = {}):
                         print(f"[IA] Attaquez et déplacez les pions capturés vers {random_dest}")
                     elif success:
                         print(f"[IA] Attaque sans repositionnement : {start_pos} -> {end_pos}")
+                move_position = start_pos
+                move_destination = end_pos
             elif action_type == 'stack_pieces':
                 success = game.stack_pieces(start_pos[0], start_pos[1], end_pos[0], end_pos[1])
                 if not success:
                     print(f"Échec du mouvement de pile: {start_pos} -> {end_pos}")
-                    return {"success": False, "message": "Échec du coup AI"}           
+                    return {"success": False, "message": "Échec du coup AI"}
+                epc_posititon = start_pos
+                epc_destination = end_pos           
             else:
                 print(f"Action inconnue: {action_type}")
                 print(f"Action: {action_type}, Start: {start_pos}, End: {end_pos}, Success: {success}")
