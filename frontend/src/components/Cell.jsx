@@ -18,6 +18,7 @@ const Cell = ({
     isLastPawnDestination, 
     isLastEPCPosition,
     isLastEPCDestination,
+    isCapturedDestination,
     animateMove,
     isFullscreen // <-- Nouvelle prop
 }) => {
@@ -52,6 +53,10 @@ const Cell = ({
 
     if (isLastEPCDestination) {
         cellClassName += ' last-pawn-destination';   
+    }
+
+    if (isCapturedDestination) {
+        cellClassName += ' last-pawn-destination';
     }
 
     return (

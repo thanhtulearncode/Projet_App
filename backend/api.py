@@ -137,7 +137,7 @@ def attack_pion_api(data: dict):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.get("/is_game_over")
+@app.post("/is_game_over")
 def is_game_over(data: dict = {}):
     # Utilise la méthode check_game_over existante
     game = GameEngine()
@@ -160,7 +160,7 @@ def ai_move(data: dict = {}):
         current_player = data.get('currentPlayer', None)
         if board is not None:
             game.update(board, current_player)
-        ai_difficulty = data.get('ai_difficulty', 'medium')
+        ai_difficulty = data.get('difficulty', 'medium')
         game.set_ai_difficulty(ai_difficulty)
     except Exception as e:
         raise HTTPException(status_code=400, detail="Invalid board data")
@@ -181,6 +181,7 @@ def ai_move(data: dict = {}):
         move_destination = None
         epc_posititon = None    
         epc_destination = None
+        captured_destination = None
         if not move:
             return {"success": False, "message": "Aucun coup possible"}
         for action_type, start_pos, end_pos in zip(action_types, start_positions, end_positions):
@@ -197,6 +198,7 @@ def ai_move(data: dict = {}):
                             start_pos[0], start_pos[1], end_pos[0], end_pos[1], random_dest
                         )
                         print(f"[IA] Attaquez et déplacez les pions capturés vers {random_dest}")
+                        captured_destination = random_dest
                     elif success:
                         print(f"[IA] Attaque sans repositionnement : {start_pos} -> {end_pos}")
                 move_position = start_pos
@@ -225,7 +227,8 @@ def ai_move(data: dict = {}):
             "pawnPosition": move_position,
             "pawnDestination": move_destination,
             "EPCPosition": epc_posititon,
-            "EPCDestination": epc_destination
+            "EPCDestination": epc_destination,
+            "capturedDestination": captured_destination
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

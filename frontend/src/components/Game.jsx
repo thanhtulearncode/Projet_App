@@ -19,6 +19,7 @@ const Game = ({ settings }) => {
   const [lastPawnDestination, setLastPawnDestination] = useState(null);
   const [lastEPCPosition, setLastEPCPosition] = useState(null);
   const [lastEPCDestination, setLastEPCDestination] = useState(null);
+  const [capturedDestination, setCapturedDestination] = useState(null);
   // Gestion de la fin de partie
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(null);
@@ -51,7 +52,7 @@ const Game = ({ settings }) => {
   };
   const playerColors = getPlayerColors();
 
-  const handleAnimation = (lastPawnPosition, lastPawnDestination, lastEPCPosition, lastEPCDestination) => {
+  const handleAnimation = (lastPawnPosition, lastPawnDestination, lastEPCPosition, lastEPCDestination, capturedDestination = null) => {
     if (lastPawnPosition !== null) {
       setLastPawnPosition({row : lastPawnPosition[0],col: lastPawnPosition[1]});
     } else {
@@ -71,6 +72,11 @@ const Game = ({ settings }) => {
       setLastEPCDestination({row : lastEPCDestination[0], col : lastEPCDestination[1]});
     } else {
       setLastEPCDestination(null);
+    }
+    if (capturedDestination !== null) {
+      setCapturedDestination({row : capturedDestination[0], col : capturedDestination[1]});
+    } else {
+      setCapturedDestination(null);
     }
   };
 
@@ -445,8 +451,8 @@ const Game = ({ settings }) => {
           board : board,
           currentPlayer: playerColors[currentPlayer],
           playerColor: playerColors.player2,
-          difficulty: settings?.difficulty || 'medium',
-          colorPair: settings?.colorPair || 'black-white'
+          difficulty: currentAIDifficulty || 'medium',
+          colorPair: settings?.colorPair || 'black-white',
         })
       });
       const endTime = Date.now();
@@ -462,7 +468,7 @@ const Game = ({ settings }) => {
         setGamePhase('move_pawn');
         setSelectedPiece(null);
         setValidMoves([]);
-        handleAnimation(data.pawnPosition, data.pawnDestination, data.EPCPosition, data.EPCDestination);
+        handleAnimation(data.pawnPosition, data.pawnDestination, data.EPCPosition, data.EPCDestination, data.capturedDestination);
       } else {
         setMessage('L\'IA n\'a pas pu jouer');
         setAIState(false);
@@ -592,7 +598,7 @@ const Game = ({ settings }) => {
           <div className="difficulty-options">
             <button 
               className={`difficulty-option ${currentAIDifficulty === 'easy' ? 'selected' : ''}`}
-              onClick={() => setAIDifficulty('easy')}
+              onClick={() => setCurrentAIDifficulty('easy')}
             >
               <span className="difficulty-emoji">😊</span>
               <span className="difficulty-name">Facile</span>
@@ -600,7 +606,7 @@ const Game = ({ settings }) => {
             </button>
             <button 
               className={`difficulty-option ${currentAIDifficulty === 'medium' ? 'selected' : ''}`}
-              onClick={() => setAIDifficulty('medium')}
+              onClick={() => setCurrentAIDifficulty('medium')}
             >
               <span className="difficulty-emoji">😐</span>
               <span className="difficulty-name">Moyen</span>
@@ -608,7 +614,7 @@ const Game = ({ settings }) => {
             </button>
             <button 
               className={`difficulty-option ${currentAIDifficulty === 'hard' ? 'selected' : ''}`}
-              onClick={() => setAIDifficulty('hard')}
+              onClick={() => setCurrentAIDifficulty('hard')}
             >
               <span className="difficulty-emoji">😈</span>
               <span className="difficulty-name">Difficile</span>
@@ -643,6 +649,7 @@ const Game = ({ settings }) => {
               lastMoveDest={lastPawnDestination}
               lastEPCPosition={lastEPCPosition}
               lastEPCDestination={lastEPCDestination}
+              capturedDestination={capturedDestination}
             />
           ) : (
             <p>Chargement du plateau...</p>
