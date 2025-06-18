@@ -365,51 +365,83 @@ class GameEngine:
         return True, captured, []
 
     def can_stack(self, color):
-        """Vérifie si le joueur peut empiler une pile carrée."""
+        """Vérifie si le joueur peut empiler une pile carrée (CPE)."""
         for x in range(8):
             for y in range(8):
                 if not self.board[x][y]:
                     continue
-                if self.board[x][y][-1].name == 'Pawn' and self.board[x][y][-1].color != color:
-                    continue
-                if self.board[x][y][-1].name == 'Square' and self.get_square_moves(self.board[x][y][-1], x, y):
+                # Check if the top piece is a square (CPE) and can be moved
+                if hasattr(self.board[x][y][-1], 'name') and self.board[x][y][-1].name == 'Square':
+                    valid_moves = self.get_valid_stack_moves(x, y)
+                    if valid_moves:
+                        print(f"Valid stack moves for CPE at ({x},{y}): {valid_moves}")
                         return True
-                if self.board[x][y][-1].name == 'Pawn' and self.board[x][y][-1].color == color and self.get_pawn_moves(self.board[x][y][-1], x, y):
-                        return True
-                    
-        print("TUTUTUTTTTTTTTTT")
+        print(f"No valid CPE moves for {color}")
         return False
 
     def check_game_over(self):
-        """Détecte la fin de partie (aucun joueur ne peut empiler)."""
-        if not self.can_stack('white') or not self.can_stack('black'):
-            self.game_over = True
-            return True
-        else:
-            for x in range(8):
-                for y in range(8):
-                    print("Valid moves for square at ({},{}) : {}".format(x, y, self.get_valid_moves(x, y)))
-        return False
+        """Détecte la fin de partie (aucun joueur ne peut déplacer un CPE)."""
+        
+        print(f"[DEBUG] Checking if {self.current_player} can move any squares...")
+        
+        for x in range(8):
+            for y in range(8):
+                if self.board[x][y]:
+                    if self.board[x][y][-1].name == 'Square':
+                        valid_moves = self.get_square_moves(self.board[x][y][-1], x, y)
+                        print(f"[AAAA] Valid moves for square at ({x},{y}): {valid_moves}")
+                        if valid_moves:
+                            return False
+        return True
 
     def get_winner(self):
-        """Détermine le gagnant selon les règles de piles (5, puis 4, etc.)."""
-        for h in range(5, 0, -1):
-            white_count = 0
-            black_count = 0
-            for x in range(8):
-                for y in range(8):
-                    pile = [p for p in self.board[x][y] if getattr(p, 'name', None) == 'Square']
-                    if len(pile) == h:
+        """Détermine le gagnant selon les règles:
+        1. Player with most pieces on buildings (stacks)
+        2. In case of tie: player with most pieces on 4-piece CPEs, then 3-piece, etc."""
+        
+        # Count pieces on buildings (stacks) for each player
+        white_building_pieces = 0
+        black_building_pieces = 0
+        
+        # Dictionary to count pieces by stack size
+        white_by_size = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+        black_by_size = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+        
+        for x in range(8):
+            for y in range(8):
+                if self.board[x][y]:
+                    # Count squares in this stack
+                    square_count = sum(1 for p in self.board[x][y] if hasattr(p, 'name') and p.name == 'Square')
+                    
+                    if square_count > 0:  # This is a building/stack
+                        # Count pawns on this building
                         for p in self.board[x][y]:
-                            if getattr(p, 'name', None) == 'Pawn':
+                            if hasattr(p, 'name') and p.name == 'Pawn':
                                 if p.color == 'white':
-                                    white_count += 1
+                                    white_building_pieces += 1
+                                    white_by_size[square_count] += 1
                                 elif p.color == 'black':
-                                    black_count += 1
-            if white_count > black_count:
+                                    black_building_pieces += 1
+                                    black_by_size[square_count] += 1
+        
+        print(f"White pieces on buildings: {white_building_pieces}")
+        print(f"Black pieces on buildings: {black_building_pieces}")
+        print(f"White by stack size: {white_by_size}")
+        print(f"Black by stack size: {black_by_size}")
+        
+        # First criterion: most pieces on buildings
+        if white_building_pieces > black_building_pieces:
+            return 'white'
+        elif black_building_pieces > white_building_pieces:
+            return 'black'
+        
+        # Tie: check by stack size (4, 3, 2, 1)
+        for size in range(4, 0, -1):
+            if white_by_size[size] > black_by_size[size]:
                 return 'white'
-            elif black_count > white_count:
+            elif black_by_size[size] > white_by_size[size]:
                 return 'black'
+        
         return 'draw'
 
     def get_valid_epc_moves(self, row, col):
