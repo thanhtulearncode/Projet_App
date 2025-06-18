@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Board from './Board';
 import Rules from './Rules';
 import API_BASE_URL from '../config/api';
@@ -29,6 +29,8 @@ const Game = ({ settings }) => {
   const [currentAIDifficulty, setCurrentAIDifficulty] = useState(settings?.difficulty || 'medium');
   const [showDifficultySelector, setShowDifficultySelector] = useState(false);
   const [aiMoveTime, setAiMoveTime] = useState(null);
+  const [timer, setTimer] = useState(10); // 10 secondes par tour
+  const timerRef = useRef(null);
 
   // Définir les couleurs des joueurs
   const getPlayerColors = () => {
@@ -256,6 +258,12 @@ const Game = ({ settings }) => {
   const playMoveSound = () => {
     const audio = new window.Audio('/sounds/move.mp3');
     audio.volume = 0.5;
+    audio.play();
+  };
+
+  // Fonction pour jouer un son d'alerte
+  const playClockSound = () => {
+    const audio = new window.Audio('/sounds/clock.mp3');
     audio.play();
   };
 
@@ -584,6 +592,28 @@ const Game = ({ settings }) => {
     );
   };
 
+  // Démarre ou réinitialise le timer à chaque changement de joueur ou phase
+  useEffect(() => {
+    setTimer(10); // Réinitialise à 10s
+    if (timerRef.current) clearInterval(timerRef.current);
+
+    timerRef.current = setInterval(() => {
+      setTimer(prev => {
+        if (prev <= 1) {
+          playClockSound();
+          clearInterval(timerRef.current);
+          // Ici tu peux aussi forcer le passage du tour, ou autre action
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [currentPlayer, gamePhase]); // Redémarre à chaque changement de joueur ou phase
+
   return (
     <div className="game">
       <div className="game-flex-container">
@@ -663,6 +693,9 @@ const Game = ({ settings }) => {
         </div>
       )}
       <AIDifficultySelector />
+      <div className="turn-timer">
+        Temps restant : {timer}s
+      </div>
     </div>
   );
 };
