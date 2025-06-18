@@ -4,14 +4,17 @@ from game_engine import GameEngine
 from AI import GameAI
 from ia import AIFactory
 import random
+import os
 
 app = FastAPI()
 game = GameEngine()
 
+ALLOWED_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+
 # Configuration CORS pour le développement
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )

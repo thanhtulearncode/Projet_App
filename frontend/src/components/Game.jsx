@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Board from './Board';
 import Rules from './Rules';
+import API_BASE_URL from '../config/api';
 import './Game.css';
 
 const Game = ({ settings }) => {
@@ -92,7 +93,7 @@ const Game = ({ settings }) => {
   // Fetch current AI difficulty from backend
   const fetchAIDifficulty = async () => {
     try {
-      const response = await fetch('http://localhost:8000/ai_difficulty');
+      const response = await fetch(`${API_BASE_URL}/ai_difficulty`);
       if (response.ok) {
         const data = await response.json();
         setCurrentAIDifficulty(data.difficulty);
@@ -105,7 +106,7 @@ const Game = ({ settings }) => {
   // Set AI difficulty
   const setAIDifficulty = async (difficulty) => {
     try {
-      const response = await fetch('http://localhost:8000/set_ai_difficulty', {
+      const response = await fetch(`${API_BASE_URL}/set_ai_difficulty`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ difficulty })
@@ -150,7 +151,7 @@ const Game = ({ settings }) => {
             }
           : {})
       });
-      const response = await fetch(`http://localhost:8000/board?${params}`);
+      const response = await fetch(`${API_BASE_URL}/board?${params}`);
       if (!response.ok) throw new Error('Erreur réseau');
       const data = await response.json();
       setBoard(data);
@@ -177,7 +178,7 @@ const Game = ({ settings }) => {
         colorPair: settings?.colorPair || 'black-white',
         ...getCustomColors()
       });
-      const response = await fetch(`http://localhost:8000/valid_moves/${row}/${col}?${params}`);
+      const response = await fetch(`${API_BASE_URL}/valid_moves/${row}/${col}?${params}`);
       if (!response.ok) throw new Error('Erreur réseau');
       const data = await response.json();
       setValidMoves(Array.isArray(data) ? data : data.validMoves || []);
@@ -193,7 +194,7 @@ const Game = ({ settings }) => {
         colorPair: settings?.colorPair || 'black-white',
         ...getCustomColors()
       });
-      const response = await fetch(`http://localhost:8000/valid_moves/${row}/${col}?${params}`);
+      const response = await fetch(`${API_BASE_URL}/valid_moves/${row}/${col}?${params}`);
       if (!response.ok) throw new Error(`Erreur réseau: ${response.status}`);
       const data = await response.json();
       setValidEPCMoves(Array.isArray(data) ? data : data.validMoves || []);
@@ -268,7 +269,7 @@ const Game = ({ settings }) => {
           end_row: row,
           end_col: col
         };
-        const response = await fetch('http://localhost:8000/attack_pion', {
+        const response = await fetch(`${API_BASE_URL}/attack_pion`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(attackBody)
@@ -299,7 +300,7 @@ const Game = ({ settings }) => {
     } else {
       // Déplacement simple
       try {
-        const response = await fetch('http://localhost:8000/move_pawn', {
+        const response = await fetch(`${API_BASE_URL}/move_pawn`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -329,7 +330,7 @@ const Game = ({ settings }) => {
   const handleCapturedMove = async (row, col) => {
     if (!pendingCaptured) return;
     try {
-      const response = await fetch('http://localhost:8000/attack_pion', {
+      const response = await fetch(`${API_BASE_URL}/attack_pion`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -360,7 +361,7 @@ const Game = ({ settings }) => {
     if (gamePhase !== 'move_epc') return;
     if (!selectedEPC || !validEPCMoves.some(move => move[0] === row && move[1] === col)) return;
     try {
-      const response = await fetch('http://localhost:8000/move_square', {
+      const response = await fetch(`${API_BASE_URL}/move_square`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -400,7 +401,7 @@ const Game = ({ settings }) => {
         colorPair: settings?.colorPair || 'black-white',
         ...getCustomColors()
       });
-      const response = await fetch(`http://localhost:8000/ai_move?${params}`, {
+      const response = await fetch(`${API_BASE_URL}/ai_move?${params}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({})
@@ -451,7 +452,7 @@ const Game = ({ settings }) => {
         ai_difficulty: currentAIDifficulty,
         ...getCustomColors()
       });
-      await fetch(`http://localhost:8000/reset?${params}`, { method: 'POST' });
+      await fetch(`${API_BASE_URL}/reset?${params}`, { method: 'POST' });
       fetchBoard();
       setSelectedPiece(null);
       setValidMoves([]);
@@ -486,7 +487,7 @@ const Game = ({ settings }) => {
   // Vérifie la fin du jeu
   const checkGameOver = async () => {
     try {
-      const response = await fetch('http://localhost:8000/is_game_over');
+      const response = await fetch(`${API_BASE_URL}/is_game_over`);
       if (!response.ok) throw new Error('Erreur réseau');
       const data = await response.json();
       if (data.game_over) {
