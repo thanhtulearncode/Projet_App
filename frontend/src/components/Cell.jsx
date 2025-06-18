@@ -18,6 +18,7 @@ const Cell = ({
     isLastPawnDestination, 
     isLastEPCPosition,
     isLastEPCDestination,
+    isCapturedDestination,
     animateMove,
     isFullscreen // <-- Nouvelle prop
 }) => {
@@ -47,11 +48,15 @@ const Cell = ({
     }
 
     if (isLastEPCPosition) {
-        cellClassName += ' last-pawn-postition';
+        cellClassName += ' last-pawn-position';
     }
 
     if (isLastEPCDestination) {
         cellClassName += ' last-pawn-destination';   
+    }
+
+    if (isCapturedDestination) {
+        cellClassName += ' last-pawn-destination';      
     }
 
     return (

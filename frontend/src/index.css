@@ -390,7 +390,7 @@ button:hover {
 
 .cell.last-pawn-position {
   animation: pulsate 1.5s infinite alternate;
-  background: #ffc99d !important;
+  background: #ff8585 !important;
   box-shadow: 0 0 0 1px rgba(255, 204, 0, 0.5) !important; /* Rendre moins visible */
 }
 

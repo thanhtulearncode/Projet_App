@@ -13,6 +13,7 @@ const Board = ({
   lastMoveDest,
   lastEPCPosition,
   lastEPCDestination,
+  capturedDestination,
   currentPlayer
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -96,9 +97,15 @@ const Board = ({
           const isLastEPCPosition = lastEPCPosition &&  
             lastEPCPosition.row === rowIndex && 
             lastEPCPosition.col === colIndex;
+
           const isLastEPCDestination = lastEPCDestination &&
             lastEPCDestination.row === rowIndex &&
             lastEPCDestination.col === colIndex;
+          
+          const isCapturedDestination = capturedDestination &&
+            capturedDestination.row === rowIndex && 
+            capturedDestination.col === colIndex;
+          
           return (
             <Cell
               key={colIndex}
@@ -112,6 +119,7 @@ const Board = ({
               isLastPawnDestination={isLastPawnDestination}
               isLastEPCPosition={isLastEPCPosition}
               isLastEPCDestination={isLastEPCDestination}
+              isCapturedDestination={isCapturedDestination}
               animateMove={animateMove}
               isFullscreen={isFullscreen}
             />

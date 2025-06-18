@@ -19,6 +19,7 @@ const Game = ({ settings }) => {
   const [lastPawnDestination, setLastPawnDestination] = useState(null);
   const [lastEPCPosition, setLastEPCPosition] = useState(null);
   const [lastEPCDestination, setLastEPCDestination] = useState(null);
+  const [capturedDestination, setCapturedDestination] = useState(null);
   // Gestion de la fin de partie
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(null);
@@ -53,7 +54,7 @@ const Game = ({ settings }) => {
   };
   const playerColors = getPlayerColors();
 
-  const handleAnimation = (lastPawnPosition, lastPawnDestination, lastEPCPosition, lastEPCDestination) => {
+  const handleAnimation = (lastPawnPosition, lastPawnDestination, lastEPCPosition, lastEPCDestination, capturedDestination=null) => {
     if (lastPawnPosition !== null) {
       setLastPawnPosition({row : lastPawnPosition[0],col: lastPawnPosition[1]});
     } else {
@@ -73,6 +74,11 @@ const Game = ({ settings }) => {
       setLastEPCDestination({row : lastEPCDestination[0], col : lastEPCDestination[1]});
     } else {
       setLastEPCDestination(null);
+    }
+    if (capturedDestination !== null) {
+      setCapturedDestination({row : capturedDestination[0], col : capturedDestination[1]});
+    } else {
+      setCapturedDestination(null);
     }
   };
 
@@ -436,7 +442,7 @@ const Game = ({ settings }) => {
         setGamePhase('move_pawn');
         setSelectedPiece(null);
         setValidMoves([]);
-        handleAnimation(data.pawnPosition, data.pawnDestination, data.EPCPosition, data.EPCDestination);
+        handleAnimation(data.pawnPosition, data.pawnDestination, data.EPCPosition, data.EPCDestination, data.capturedDestination);
       } else {
         setMessage('L\'IA n\'a pas pu jouer');
         setAIState(false);
@@ -690,6 +696,7 @@ const Game = ({ settings }) => {
             lastMoveDest={lastPawnDestination}
             lastEPCPosition={lastEPCPosition}
             lastEPCDestination={lastEPCDestination}
+            capturedDestination={capturedDestination}
             currentPlayer={currentPlayer}
           />
         ) : (
