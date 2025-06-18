@@ -120,6 +120,10 @@ def ai_move(data: dict = {}):
         action_types = [action[0] for action in move]
         start_positions = [action[1] for action in move]
         end_positions = [action[2] for action in move]
+        move_position = None
+        move_destination = None
+        epc_posititon = None    
+        epc_destination = None
         if not move:
             return {"success": False, "message": "Aucun coup possible"}
         for action_type, start_pos, end_pos in zip(action_types, start_positions, end_positions):
