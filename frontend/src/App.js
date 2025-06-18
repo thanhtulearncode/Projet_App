@@ -17,7 +17,7 @@ function App() {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'column' // Thêm nếu bạn muốn các thành phần xếp theo chiều dọc
+    flexDirection: 'column' 
   };
 
   const handleStartGame = (settings) => {

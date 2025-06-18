@@ -68,6 +68,7 @@ const Cell = ({
                             height={piece.height}
                             stackIndex={index}
                             stackHeight={stack.length}
+                            playerColors={playerColors}
                         />
                     </div>
                 </div>
