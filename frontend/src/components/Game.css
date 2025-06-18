@@ -248,6 +248,7 @@
 }
 
 /* Plateau centré */
+/* Container tổng thể */
 .game-content {
   display: flex;
   flex-direction: row;
@@ -255,11 +256,12 @@
   align-items: flex-start;
   gap: 30px;
   flex-wrap: wrap;
+  padding: 10px;
 }
 
+/* Bàn cờ */
 .game-board-center {
   flex: 1;
-  max-width: 700px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -271,22 +273,21 @@
   background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
   border: 2px solid rgba(255, 215, 0, 0.3);
   transition: all 0.3s ease;
+  overflow-x: auto; /* Quan trọng cho mobile */
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
-.game-board-center:hover {
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
-  border: 2px solid rgba(255, 215, 0, 0.5);
-}
-
+/* Sidebar */
 .game-sidebar {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 350px;
   flex: 1;
+  max-width: 350px;
 }
 
-/* Mobile responsive */
+/* Responsive cho mobile */
 @media (max-width: 768px) {
   .game-content {
     flex-direction: column;
@@ -296,19 +297,15 @@
   .game-board-center,
   .game-sidebar {
     width: 100%;
-    max-width: 95%;
-    
+    max-width: 100%;
   }
 
-  
   .game-board-center {
-    max-width: 80vw;        
-    overflow-x: auto;        
-    box-sizing: border-box;  
+    overflow-x: auto;
   }
 
   .game-board-center > * {
-    max-width: 100%;
+    max-width: unset;
     height: auto;
   }
 
@@ -317,42 +314,10 @@
     text-align: center;
   }
 
-  .mobile-order-1 {
-    order: 1;
-  }
-
-  .mobile-order-2 {
-    order: 2;
-  }
-
-  .player-color-marker {
-    width: 30px;
-    height: 30px;
-  }
-
-  .game-top-controls {
-    flex-direction: column;
-    gap: 20px;
-    padding: 15px;
-  }
-
-  .game-actions {
-    width: 100%;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  .action-button {
-    padding: 8px 12px;
-    font-size: 0.85rem;
-  }
-
-  .current-player-indicator span {
-    font-size: 0.9rem;
-  }
-
   .game-proverb {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
+    text-align: center;
+    padding: 10px;
   }
 
   .message-toast {
@@ -361,14 +326,13 @@
   }
 }
 
-
 @media (max-width: 480px) {
+  .game-proverb {
+    font-size: 1.1rem;
+  }
+
   .player-color-marker {
     width: 25px;
     height: 25px;
-  }
-
-  .game-proverb {
-    font-size: 1.2rem;
   }
 }
