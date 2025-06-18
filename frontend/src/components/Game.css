@@ -297,19 +297,6 @@
   .game-sidebar {
     width: 100%;
     max-width: 95%;
-    
-  }
-
-  
-  .game-board-center {
-    max-width: 100vw;        
-    overflow-x: auto;        
-    box-sizing: border-box;  
-  }
-
-  .game-board-center > * {
-    max-width: 100%;
-    height: auto;
   }
 
   .game-sidebar {
@@ -360,7 +347,6 @@
     padding: 10px 20px;
   }
 }
-
 
 @media (max-width: 480px) {
   .player-color-marker {
