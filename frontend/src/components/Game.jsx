@@ -253,6 +253,12 @@ const Game = ({ settings }) => {
     fetchValidEPCMoves(row, col);
   };
 
+  const playMoveSound = () => {
+    const audio = new window.Audio('/sounds/move.mp3');
+    audio.volume = 0.5;
+    audio.play();
+  };
+
   // Déplacement pion (inclut capture)
   const handleMove = async (row, col) => {
     if (gamePhase !== 'move_pawn') return;
@@ -312,6 +318,7 @@ const Game = ({ settings }) => {
         });
         const result = await response.json();
         if (result.success) {
+          playMoveSound(); // <-- Joue le son ici
           setMessage('Déplacement effectué');
           setSelectedPiece(null);
           setValidMoves([]);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Game from './components/Game';
 import Menu from './components/Menu';
 import './App.css';
@@ -8,6 +8,28 @@ function App() {
   const [gameSettings, setGameSettings] = useState({ mode: null, difficulty: null });
   const [isLoading, setIsLoading] = useState(false);
   const [transition, setTransition] = useState(false);
+
+  // --- Musique de fond ---
+  const [musicEnabled, setMusicEnabled] = useState(true);
+  const [musicVolume, setMusicVolume] = useState(0.7);
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    if (!audioRef.current) {
+      audioRef.current = new window.Audio('/sounds/background.mp3');
+      audioRef.current.loop = true;
+    }
+    audioRef.current.volume = musicVolume; // <-- Ajoute cette ligne pour gérer le volume
+    if (musicEnabled) {
+      audioRef.current.play().catch(() => {});
+    } else {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    return () => {
+      audioRef.current.pause();
+    };
+  }, [musicEnabled, musicVolume]); // <-- Ajoute musicVolume dans le tableau de dépendances
 
   // Effet de transition entre les écrans
   useEffect(() => {
@@ -60,7 +82,13 @@ function App() {
       
       {showMenu ? (
         <div className={`menu-view ${transition ? 'fade-out' : 'fade-in'}`}>
-          <Menu onStartGame={handleStartGame} />
+          <Menu 
+            onStartGame={handleStartGame} 
+            musicEnabled={musicEnabled}
+            setMusicEnabled={setMusicEnabled}
+            musicVolume={musicVolume}
+            setMusicVolume={setMusicVolume}
+          />
         </div>
       ) : (
         <div className={`game-view ${transition ? 'fade-out' : 'fade-in'}`}>
@@ -70,7 +98,10 @@ function App() {
           <div className="game-mode-indicator" style={{ marginBottom: '10px', fontWeight: 'bold', color: '#fff' }}>
             Mode: {getGameModeText()}
           </div>
-          <Game settings={gameSettings} />
+          <Game 
+            settings={gameSettings} 
+            onBackToMenu={handleBackToMenu} 
+          />
         </div>
       )}
       
