@@ -9,7 +9,7 @@ import os
 app = FastAPI()
 game = GameEngine()
 
-ALLOWED_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+ALLOWED_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000", "https://wall-street-game.vercel.app").split(",")
 
 # Configuration CORS pour le développement
 app.add_middleware(
