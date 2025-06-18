@@ -348,3 +348,78 @@ class RandomAI:
             return [move]
 
         return None
+
+
+# AI Difficulty Levels
+class EasyAI(RandomAI):
+    """
+    Level 1 AI - Easy difficulty
+    Uses random moves with basic validation
+    """
+    def __init__(self, color):
+        super().__init__(color)
+        self.difficulty = "Easy"
+        print(f"[AI] Initialized {self.difficulty} AI for {color}")
+
+    def make_decision(self, game_engine):
+        print(f"[{self.difficulty} AI] Making random move decision")
+        return super().make_decision(game_engine)
+
+
+class MediumAI(MinMaxAI):
+    """
+    Level 2 AI - Medium difficulty
+    Uses MinMax algorithm with shallow depth (2) for basic strategy
+    """
+    def __init__(self, color):
+        super().__init__(color, depth=2)
+        self.difficulty = "Medium"
+        print(f"[AI] Initialized {self.difficulty} AI for {color} (depth: {self.depth})")
+
+    def make_decision(self, game_engine):
+        print(f"[{self.difficulty} AI] Making strategic move decision (depth: {self.depth})")
+        return super().make_decision(game_engine)
+
+
+class HardAI(MinMaxAI):
+    """
+    Level 3 AI - Hard difficulty
+    Uses MinMax algorithm with deep depth (4) for advanced strategy
+    """
+    def __init__(self, color):
+        super().__init__(color, depth=4)
+        self.difficulty = "Hard"
+        print(f"[AI] Initialized {self.difficulty} AI for {color} (depth: {self.depth})")
+
+    def make_decision(self, game_engine):
+        print(f"[{self.difficulty} AI] Making advanced strategic move decision (depth: {self.depth})")
+        return super().make_decision(game_engine)
+
+
+# AI Factory for easy instantiation
+class AIFactory:
+    """
+    Factory class to create AI instances based on difficulty level
+    """
+    @staticmethod
+    def create_ai(difficulty, color):
+        """
+        Create an AI instance based on difficulty level
+        
+        Args:
+            difficulty (str): "easy", "medium", or "hard"
+            color (str): "white" or "black"
+            
+        Returns:
+            AI instance of the specified difficulty
+        """
+        difficulty = difficulty.lower()
+        
+        if difficulty == "easy":
+            return EasyAI(color)
+        elif difficulty == "medium":
+            return MediumAI(color)
+        elif difficulty == "hard":
+            return HardAI(color)
+        else:
+            raise ValueError(f"Unknown difficulty level: {difficulty}. Use 'easy', 'medium', or 'hard'")

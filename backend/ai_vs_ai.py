@@ -2,46 +2,44 @@
 """
 AI vs AI Testing Script
 This script allows two AIs to play against each other quickly for testing purposes.
+Updated to use the new AI difficulty levels with execution time tracking.
 """
 
 import time
 import sys
 import os
+from statistics import mean, median
 
 # Add the backend directory to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
 
 from game_engine import GameEngine
-from ia import MinMaxAI, RandomAI
+from ia import AIFactory, EasyAI, MediumAI, HardAI
 
 class AIVsAITester:
-    def __init__(self, white_ai_type='random', black_ai_type='minmax', max_turns=100):
+    def __init__(self, white_ai_difficulty='easy', black_ai_difficulty='medium', max_turns=100):
         """
         Initialize the AI vs AI tester
         
         Args:
-            white_ai_type: 'random' or 'minmax'
-            black_ai_type: 'random' or 'minmax'
+            white_ai_difficulty: 'easy', 'medium', or 'hard'
+            black_ai_difficulty: 'easy', 'medium', or 'hard'
             max_turns: Maximum number of turns to prevent infinite games
         """
         self.game = GameEngine()
         self.max_turns = max_turns
         self.turn_count = 0
         
-        # Initialize AIs
-        if white_ai_type == 'random':
-            self.white_ai = RandomAI('white')
-        elif white_ai_type == 'minmax':
-            self.white_ai = MinMaxAI('white', depth=2)
-        else:
-            raise ValueError(f"Unknown AI type: {white_ai_type}")
-            
-        if black_ai_type == 'random':
-            self.black_ai = RandomAI('black')
-        elif black_ai_type == 'minmax':
-            self.black_ai = MinMaxAI('black', depth=2)
-        else:
-            raise ValueError(f"Unknown AI type: {black_ai_type}")
+        # Initialize AIs using the factory
+        self.white_ai = AIFactory.create_ai(white_ai_difficulty, 'white')
+        self.black_ai = AIFactory.create_ai(black_ai_difficulty, 'black')
+        
+        # Execution time tracking
+        self.white_move_times = []
+        self.black_move_times = []
+        self.total_game_time = 0
+        
+        print(f"[AI vs AI] Initialized: {self.white_ai.difficulty} AI (White) vs {self.black_ai.difficulty} AI (Black)")
     
     def print_board(self):
         """Print the current board state"""
@@ -71,14 +69,26 @@ class AIVsAITester:
         print()
     
     def make_ai_move(self, ai):
-        """Make a move for the given AI"""
+        """Make a move for the given AI and track execution time"""
         try:
+            start_time = time.time()
             move = ai.make_decision(self.game)
+            end_time = time.time()
+            
+            execution_time = end_time - start_time
+            
+            # Store execution time
+            if ai.color == 'white':
+                self.white_move_times.append(execution_time)
+            else:
+                self.black_move_times.append(execution_time)
+            
             if not move:
                 print(f"[ERROR] {ai.color} AI returned no move")
                 return False
             
-            print(f"[AI] {ai.color} AI move: {move}")
+            print(f"[AI] {ai.color} AI ({ai.difficulty}) move: {move}")
+            print(f"[TIME] {ai.color} AI took {execution_time:.3f}s")
             
             # Execute the move
             for action_type, start_pos, end_pos in move:
@@ -147,9 +157,11 @@ class AIVsAITester:
         Args:
             delay: Delay between moves in seconds (0 for no delay)
         """
-        print(f"Starting AI vs AI game: {self.white_ai.__class__.__name__} vs {self.black_ai.__class__.__name__}")
+        print(f"Starting AI vs AI game: {self.white_ai.difficulty} AI vs {self.black_ai.difficulty} AI")
         print(f"Max turns: {self.max_turns}")
         print(f"Delay between moves: {delay}s")
+        
+        game_start_time = time.time()
         
         while self.turn_count < self.max_turns:
             self.turn_count += 1
@@ -168,13 +180,9 @@ class AIVsAITester:
             current_ai = self.white_ai if self.game.current_player == 'white' else self.black_ai
             
             # Make AI move
-            print(f"\n[AI] {current_ai.color} AI is thinking...")
-            start_time = time.time()
+            print(f"\n[AI] {current_ai.color} AI ({current_ai.difficulty}) is thinking...")
             
             success = self.make_ai_move(current_ai)
-            
-            end_time = time.time()
-            print(f"[AI] {current_ai.color} AI took {end_time - start_time:.2f}s")
             
             if not success:
                 print(f"[ERROR] Failed to make move for {current_ai.color} AI")
@@ -183,6 +191,9 @@ class AIVsAITester:
             # Add delay if specified
             if delay > 0:
                 time.sleep(delay)
+        
+        game_end_time = time.time()
+        self.total_game_time = game_end_time - game_start_time
         
         if self.turn_count >= self.max_turns:
             print(f"\n[GAME OVER] Maximum turns ({self.max_turns}) reached")
@@ -196,13 +207,49 @@ class AIVsAITester:
         self.print_statistics()
     
     def print_statistics(self):
-        """Print game statistics"""
-        print("\n" + "="*50)
+        """Print comprehensive game statistics including execution times"""
+        print("\n" + "="*60)
         print("GAME STATISTICS")
-        print("="*50)
+        print("="*60)
         print(f"Total turns: {self.turn_count}")
         print(f"Final player: {self.game.current_player}")
         print(f"Game over: {self.game.game_over}")
+        print(f"Total game time: {self.total_game_time:.3f}s")
+        
+        # AI Performance Statistics
+        print(f"\n{self.white_ai.difficulty} AI (White) Performance:")
+        if self.white_move_times:
+            print(f"  Total moves: {len(self.white_move_times)}")
+            print(f"  Average move time: {mean(self.white_move_times):.3f}s")
+            print(f"  Median move time: {median(self.white_move_times):.3f}s")
+            print(f"  Fastest move: {min(self.white_move_times):.3f}s")
+            print(f"  Slowest move: {max(self.white_move_times):.3f}s")
+            print(f"  Total thinking time: {sum(self.white_move_times):.3f}s")
+        else:
+            print("  No moves recorded")
+        
+        print(f"\n{self.black_ai.difficulty} AI (Black) Performance:")
+        if self.black_move_times:
+            print(f"  Total moves: {len(self.black_move_times)}")
+            print(f"  Average move time: {mean(self.black_move_times):.3f}s")
+            print(f"  Median move time: {median(self.black_move_times):.3f}s")
+            print(f"  Fastest move: {min(self.black_move_times):.3f}s")
+            print(f"  Slowest move: {max(self.black_move_times):.3f}s")
+            print(f"  Total thinking time: {sum(self.black_move_times):.3f}s")
+        else:
+            print("  No moves recorded")
+        
+        # Overall AI comparison
+        if self.white_move_times and self.black_move_times:
+            white_avg = mean(self.white_move_times)
+            black_avg = mean(self.black_move_times)
+            print(f"\nAI Performance Comparison:")
+            print(f"  {self.white_ai.difficulty} AI average: {white_avg:.3f}s")
+            print(f"  {self.black_ai.difficulty} AI average: {black_avg:.3f}s")
+            if white_avg < black_avg:
+                print(f"  {self.white_ai.difficulty} AI is {black_avg/white_avg:.1f}x faster")
+            else:
+                print(f"  {self.black_ai.difficulty} AI is {white_avg/black_avg:.1f}x faster")
         
         # Count pieces on board
         white_pawns = 0
@@ -221,20 +268,21 @@ class AIVsAITester:
                         elif piece.name == 'Square':
                             squares += 1
         
-        print(f"White pawns: {white_pawns}")
-        print(f"Black pawns: {black_pawns}")
-        print(f"Total squares: {squares}")
+        print(f"\nFinal Board State:")
+        print(f"  White pawns: {white_pawns}")
+        print(f"  Black pawns: {black_pawns}")
+        print(f"  Total squares: {squares}")
 
 
 def main():
     """Main function to run AI vs AI testing"""
     import argparse
     
-    parser = argparse.ArgumentParser(description='AI vs AI Testing Script')
-    parser.add_argument('--white', choices=['random', 'minmax'], default='random',
-                       help='AI type for white player (default: random)')
-    parser.add_argument('--black', choices=['random', 'minmax'], default='minmax',
-                       help='AI type for black player (default: minmax)')
+    parser = argparse.ArgumentParser(description='AI vs AI Testing Script with Difficulty Levels')
+    parser.add_argument('--white', choices=['easy', 'medium', 'hard'], default='easy',
+                       help='AI difficulty for white player (default: easy)')
+    parser.add_argument('--black', choices=['easy', 'medium', 'hard'], default='medium',
+                       help='AI difficulty for black player (default: medium)')
     parser.add_argument('--max-turns', type=int, default=100,
                        help='Maximum number of turns (default: 100)')
     parser.add_argument('--delay', type=float, default=0.1,
@@ -249,8 +297,8 @@ def main():
     
     # Create and run the tester
     tester = AIVsAITester(
-        white_ai_type=args.white,
-        black_ai_type=args.black,
+        white_ai_difficulty=args.white,
+        black_ai_difficulty=args.black,
         max_turns=args.max_turns
     )
     
