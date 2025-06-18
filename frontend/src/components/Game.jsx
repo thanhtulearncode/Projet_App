@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Board from './Board';
 import Rules from './Rules';
 import API_BASE_URL from '../config/api';
@@ -253,6 +253,18 @@ const Game = ({ settings }) => {
     fetchValidEPCMoves(row, col);
   };
 
+  const playMoveSound = () => {
+    const audio = new window.Audio('/sounds/move.mp3');
+    audio.volume = 0.5;
+    audio.play();
+  };
+
+  // Fonction pour jouer un son d'alerte
+  const playClockSound = () => {
+    const audio = new window.Audio('/sounds/clock.mp3');
+    audio.play();
+  };
+
   // Déplacement pion (inclut capture)
   const handleMove = async (row, col) => {
     if (gamePhase !== 'move_pawn') return;
@@ -312,6 +324,7 @@ const Game = ({ settings }) => {
         });
         const result = await response.json();
         if (result.success) {
+          playMoveSound(); // <-- Joue le son ici
           setMessage('Déplacement effectué');
           setSelectedPiece(null);
           setValidMoves([]);
@@ -579,8 +592,20 @@ const Game = ({ settings }) => {
 
   return (
     <div className="game">
-      <div className="game-flex-container">
-        <div className="game-board-zone">
+      {/* Fond avec effet radial */}
+      <div className="game-background">
+        <div className="game-logo-background"></div>
+        <div className="animated-logo">
+          <div className="logo-building"></div>
+          <div className="logo-building"></div>
+          <div className="logo-building"></div>
+        </div>
+      </div>
+
+      <div className="game-content">
+        
+        <div className="game-board-center">
+          <div className="board-logo-background"></div>
           {board.length > 0 ? (
             <Board 
               board={board} 
@@ -594,60 +619,69 @@ const Game = ({ settings }) => {
               lastMoveDest={lastPawnDestination}
               lastEPCPosition={lastEPCPosition}
               lastEPCDestination={lastEPCDestination}
+              currentPlayer={currentPlayer}
             />
           ) : (
-            <p>Chargement du plateau...</p>
+            <div className="loading-board">
+              <div className="spinner"></div>
+              <p>Chargement du plateau...</p>
+            </div>
           )}
         </div>
-        <div className="game-info-panel">
-          <button className="rules-side-button" onClick={() => setShowRules(true)}>
-            Règles
-          </button>
-          {settings?.mode === 'ai' && (
-            <div className="ai-controls">
-              <div className="ai-indicator">
-                IA: {getDifficultyName(currentAIDifficulty)} {getDifficultyEmoji(currentAIDifficulty)}
-              </div>
-              <button 
-                className="change-ai-difficulty-button"
-                onClick={() => setShowDifficultySelector(true)}
-                disabled={aiState}
-              >
-                Changer niveau
-              </button>
-              {aiMoveTime && (
-                <div className="ai-move-time">
-                  Dernier coup: {aiMoveTime.toFixed(2)}s
-                </div>
+
+        <div className="game-sidebar">
+          <div className="game-proverb">
+            "Focus To Win, Strategy To Conquer"
+          </div>
+
+          <div className="game-top-controls">
+            <div className="current-player-indicator">
+              <div 
+                className="player-color-marker" 
+                style={{ backgroundColor: playerColors[currentPlayer] }}
+              ></div>
+            </div>
+
+            <div className="game-actions">
+              {gamePhase === 'move_epc' && (
+                <button className="action-button skip-button" onClick={skipEPCMove}>
+                  Passer
+                </button>
               )}
+              <button className="action-button reset-button" onClick={resetGame}>
+                Nouvelle partie
+              </button>
+              <button className="action-button rules-button" onClick={() => setShowRules(true)}>
+                Règles
+              </button>
             </div>
-          )}
-          <div className="color-indicator">
-            Couleurs: {getColorName(playerColors.player1)} vs {getColorName(playerColors.player2)}
+
+            {message && <div className="message-toast">{message}</div>}
+
+            {settings?.mode === 'ai' && (
+              <div className="ai-badge">
+                <div className="ai-level">
+                  {getDifficultyEmoji(currentAIDifficulty)}
+                  <button 
+                    className="ai-level-button"
+                    onClick={() => setShowDifficultySelector(true)}
+                    disabled={aiState}
+                  >
+                    {getDifficultyName(currentAIDifficulty)}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="message">{message}</div>
-          <div className="current-player">
-            Joueur actuel: {getColorName(playerColors[currentPlayer])}
-          </div>
-          <div className="game-phase">
-            Phase: {gamePhase === 'move_pawn' 
-              ? 'Déplacement de pion' 
-              : 'Déplacement d\'un EPC au choix'}
-          </div>
-          {gamePhase === 'move_epc' && (
-            <div className="phase-help">
-              Sélectionnez n'importe quel EPC sans pion pour le déplacer
-            </div>
-          )}
-          {gamePhase === 'move_epc' && (
-            <button className="skip-button" onClick={skipEPCMove}>
-              Passer le déplacement d'EPC
-            </button>
-          )}
-          <button onClick={resetGame} className="reset-button">Nouvelle partie</button>
-          {showRules && <Rules onClose={() => setShowRules(false)} />}
+
+
         </div>
       </div>
+
+      {/* Règles */}
+      {showRules && <Rules onClose={() => setShowRules(false)} />}
+
+      {/* Fin de partie */}
       {gameOver && (
         <div className="game-over">
           <h2>Fin de la partie</h2>
@@ -655,9 +689,12 @@ const Game = ({ settings }) => {
           <button onClick={resetGame}>Rejouer</button>
         </div>
       )}
+
+      {/* Sélecteur de difficulté IA */}
       <AIDifficultySelector />
     </div>
   );
+
 };
 
 export default Game;
