@@ -2,15 +2,19 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from game_engine import GameEngine
 from AI import GameAI
+from ia import AIFactory
 import random
+import os
 
 app = FastAPI()
 #game = GameEngine()
 
+ALLOWED_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+
 # Configuration CORS pour le développement
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -65,17 +69,25 @@ async def make_move(data: dict):
     
 @app.post("/reset")
 def reset_game(request: Request):
-    game = GameEngine()
     colorPair = "black-white"
+    ai_difficulty = "medium"
     try:
         data = request.query_params
         if 'colorPair' in data:
             colorPair = data['colorPair']
+        if 'ai_difficulty' in data:
+            ai_difficulty = data['ai_difficulty']
+            if ai_difficulty not in ['easy', 'medium', 'hard']:
+                ai_difficulty = "medium"  # Default to medium if invalid
     except Exception as e:
         raise HTTPException(status_code=400, detail="Invalid query parameters")
-    game = GameEngine(color_pair=colorPair)
+    
+    game = GameEngine(color_pair=colorPair, ai_difficulty=ai_difficulty)
     return {
+        
         "status": "Game reset",
+        "ai_difficulty": ai_difficulty,
+        "color_pair": colorPair,
         "board": game.get_state()
     }
 
@@ -148,10 +160,12 @@ def ai_move(data: dict = {}):
         current_player = data.get('currentPlayer', None)
         if board is not None:
             game.update(board, current_player)
+        ai_difficulty = data.get('ai_difficulty', 'medium')
+        game.set_ai_difficulty(ai_difficulty)
     except Exception as e:
         raise HTTPException(status_code=400, detail="Invalid board data")
     try:
-        print("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
+        print(f"[AI] {game.ai.difficulty} AI is thinking...")
         try:
             move = game.ai.make_decision(game)
         except Exception as e:
@@ -163,6 +177,10 @@ def ai_move(data: dict = {}):
         action_types = [action[0] for action in move]
         start_positions = [action[1] for action in move]
         end_positions = [action[2] for action in move]
+        move_position = None
+        move_destination = None
+        epc_posititon = None    
+        epc_destination = None
         if not move:
             return {"success": False, "message": "Aucun coup possible"}
         for action_type, start_pos, end_pos in zip(action_types, start_positions, end_positions):
@@ -181,11 +199,15 @@ def ai_move(data: dict = {}):
                         print(f"[IA] Attaquez et déplacez les pions capturés vers {random_dest}")
                     elif success:
                         print(f"[IA] Attaque sans repositionnement : {start_pos} -> {end_pos}")
+                move_position = start_pos
+                move_destination = end_pos
             elif action_type == 'stack_pieces':
                 success = game.stack_pieces(start_pos[0], start_pos[1], end_pos[0], end_pos[1])
                 if not success:
                     print(f"Échec du mouvement de pile: {start_pos} -> {end_pos}")
-                    return {"success": False, "message": "Échec du coup AI"}           
+                    return {"success": False, "message": "Échec du coup AI"}
+                epc_posititon = start_pos
+                epc_destination = end_pos           
             else:
                 print(f"Action inconnue: {action_type}")
                 print(f"Action: {action_type}, Start: {start_pos}, End: {end_pos}, Success: {success}")
@@ -198,7 +220,12 @@ def ai_move(data: dict = {}):
         return {
             "success": success,
             "current_player": game.current_player,
-            "board": game.get_state()
+            "board": game.get_state(),
+            "ai_difficulty": game.get_ai_difficulty(),
+            "pawnPosition": move_position,
+            "pawnDestination": move_destination,
+            "EPCPosition": epc_posititon,
+            "EPCDestination": epc_destination
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

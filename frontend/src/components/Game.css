@@ -1,0 +1,234 @@
+/* AI Controls Styles */
+.ai-controls {
+  background: linear-gradient(135deg, #2c3e50, #34495e);
+  border-radius: 12px;
+  padding: 15px;
+  margin: 10px 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border: 2px solid #3498db;
+}
+
+.ai-indicator {
+  font-size: 16px;
+  font-weight: bold;
+  color: #ecf0f1;
+  text-align: center;
+  margin-bottom: 10px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.change-ai-difficulty-button {
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+.change-ai-difficulty-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2980b9, #1f5f8b);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+}
+
+.change-ai-difficulty-button:disabled {
+  background: #95a5a6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.ai-move-time {
+  font-size: 12px;
+  color: #bdc3c7;
+  text-align: center;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+/* AI Difficulty Selector Styles */
+.ai-difficulty-selector {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.difficulty-selector-content {
+  background: linear-gradient(135deg, #2c3e50, #34495e);
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border: 3px solid #3498db;
+  animation: slideIn 0.3s ease;
+}
+
+.difficulty-selector-content h3 {
+  color: #ecf0f1;
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 24px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.difficulty-options {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.difficulty-option {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #34495e, #2c3e50);
+  border: 2px solid #7f8c8d;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #ecf0f1;
+  text-align: left;
+}
+
+.difficulty-option:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  border-color: #3498db;
+}
+
+.difficulty-option.selected {
+  border-color: #e74c3c;
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3);
+}
+
+.difficulty-emoji {
+  font-size: 24px;
+  margin-right: 15px;
+  min-width: 30px;
+  text-align: center;
+}
+
+.difficulty-name {
+  font-size: 18px;
+  font-weight: bold;
+  margin-right: 10px;
+  flex: 1;
+}
+
+.difficulty-desc {
+  font-size: 14px;
+  color: #bdc3c7;
+  font-style: italic;
+}
+
+.close-difficulty-selector {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.close-difficulty-selector:hover {
+  background: linear-gradient(135deg, #7f8c8d, #6c7b7d);
+  transform: translateY(-1px);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .difficulty-selector-content {
+    padding: 20px;
+    margin: 20px;
+  }
+  
+  .difficulty-option {
+    padding: 12px 15px;
+  }
+  
+  .difficulty-emoji {
+    font-size: 20px;
+    margin-right: 12px;
+  }
+  
+  .difficulty-name {
+    font-size: 16px;
+  }
+  
+  .difficulty-desc {
+    font-size: 12px;
+  }
+}
+
+/* Enhanced AI State Indicators */
+.ai-controls.thinking {
+  border-color: #f39c12;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(243, 156, 18, 0.4);
+  }
+  100% {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* Difficulty-specific styling */
+.difficulty-option[onclick*="easy"]:hover {
+  border-color: #27ae60;
+}
+
+.difficulty-option[onclick*="medium"]:hover {
+  border-color: #f39c12;
+}
+
+.difficulty-option[onclick*="hard"]:hover {
+  border-color: #e74c3c;
+} 
