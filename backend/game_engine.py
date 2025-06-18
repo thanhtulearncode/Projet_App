@@ -11,7 +11,7 @@ class GameEngine:
         self.game_over = False
         #self.ai = GameAI('hard', 'white')  # Initialisation de l'IA pour le joueur blanc
         #self.ai = RandomAI('black', depth=2)  # Initialisation de l'IA pour le joueur blanc
-        self.ai = MinMaxAI('black', depth=2)  # Initialisation de l'IA pour le joueur noir
+        self.ai = MinMaxAI('black', depth=3)  # Initialisation de l'IA pour le joueur noir
         
     def create_initial_board(self):
         board = [[[] for _ in range(8)] for _ in range(8)]
@@ -27,12 +27,13 @@ class GameEngine:
             color1, color2 = 'white', 'black'
 
         for col in range(8):
-            if col % 2 == 0:
-                self.add_pawn(board, 0, col, color2)
-                self.add_pawn(board, 6, col, color2)
+            row = (col + 1) % 2
+            if (col < 4) == (col % 2 == 0):
+                c1, c2 = color2, color1
             else:
-                self.add_pawn(board, 1, col, color1)
-                self.add_pawn(board, 7, col, color1)
+                c1, c2 = color1, color2
+            self.add_pawn(board, row, col, c1)
+            self.add_pawn(board, 7 - row, col, c2)
         return board
 
     def clone(self):
@@ -369,19 +370,25 @@ class GameEngine:
             for y in range(8):
                 if not self.board[x][y]:
                     continue
-                if any(getattr(p, 'name', None) == 'Pawn' and p.color == color for p in self.board[x][y]):
+                if self.board[x][y][-1].name == 'Pawn' and self.board[x][y][-1].color != color:
                     continue
-                if any(getattr(p, 'name', None) == 'Square' for p in self.board[x][y]):
-                    if self.get_valid_stack_moves(x, y):
+                if self.board[x][y][-1].name == 'Square' and self.get_square_moves(self.board[x][y][-1], x, y):
                         return True
+                if self.board[x][y][-1].name == 'Pawn' and self.board[x][y][-1].color == color and self.get_pawn_moves(self.board[x][y][-1], x, y):
+                        return True
+                    
         print("TUTUTUTTTTTTTTTT")
         return False
 
     def check_game_over(self):
         """Détecte la fin de partie (aucun joueur ne peut empiler)."""
-        if not self.can_stack('white') and not self.can_stack('black'):
+        if not self.can_stack('white') or not self.can_stack('black'):
             self.game_over = True
             return True
+        else:
+            for x in range(8):
+                for y in range(8):
+                    print("Valid moves for square at ({},{}) : {}".format(x, y, self.get_valid_moves(x, y)))
         return False
 
     def get_winner(self):

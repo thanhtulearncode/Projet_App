@@ -100,6 +100,9 @@ const Game = ({ settings }) => {
       setMessage('L\'IA est en train de jouer, veuillez patienter');
       return;
     }
+    console.log('handleSelectPiece', board[row][col]);
+    console.log('currentPlayer', currentPlayer);
+    // Vérifier que la case contient un pion de la couleur du joueur actuel
     if (board[row][col].length === 0 || 
         board[row][col][board[row][col].length - 1].type !== 'Pawn' || 
         board[row][col][board[row][col].length - 1].color !== playerColors[currentPlayer]) {
