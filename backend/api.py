@@ -194,7 +194,11 @@ def ai_move(data: dict = {}):
             "success": success,
             "current_player": game.current_player,
             "state": game.get_state(),
-            "ai_difficulty": game.get_ai_difficulty()
+            "ai_difficulty": game.get_ai_difficulty(),
+            "pawnPosition": move_position,
+            "pawnDestination": move_destination,
+            "EPCPosition": epc_posititon,
+            "EPCDestination": epc_destination
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

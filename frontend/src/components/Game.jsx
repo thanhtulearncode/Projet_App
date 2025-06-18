@@ -15,6 +15,10 @@ const Game = ({ settings }) => {
   const [selectedEPC, setSelectedEPC] = useState(null);
   const [validEPCMoves, setValidEPCMoves] = useState([]);
   const [lastPawnPosition, setLastPawnPosition] = useState(null);
+  const [lastPawnDestination, setLastPawnDestination] = useState(null);
+  const [lastEPCPosition, setLastEPCPosition] = useState(null);
+  const [lastEPCDestination, setLastEPCDestination] = useState(null);
+  // Gestion de la fin de partie
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(null);
   const [showRules, setShowRules] = useState(false);
@@ -39,13 +43,35 @@ const Game = ({ settings }) => {
         return { player1: 'red', player2: 'green' };
       case 'orange-blue':
         return { player1: 'orange', player2: 'blue' };
-      case 'black-white':
-        return { player1: 'black', player2: 'blue' };
+      
       default:
         return { player1: 'white', player2: 'black' };
     }
   };
   const playerColors = getPlayerColors();
+
+  const handleAnimation = (lastPawnPosition, lastPawnDestination, lastEPCPosition, lastEPCDestination) => {
+    if (lastPawnPosition !== null) {
+      setLastPawnPosition({row : lastPawnPosition[0],col: lastPawnPosition[1]});
+    } else {
+      setLastPawnPosition(null);
+    }
+    if (lastPawnDestination !== null) {
+      setLastPawnDestination({row : lastPawnDestination[0], col : lastPawnDestination[1]});
+    } else {
+      setLastPawnDestination(null);
+    }  
+    if (lastEPCPosition !== null) {
+      setLastEPCPosition({row : lastEPCPosition[0], col : lastEPCPosition[1]});
+    } else {
+      setLastEPCPosition(null);
+    }
+    if (lastEPCDestination !== null) {
+      setLastEPCDestination({row : lastEPCDestination[0], col : lastEPCDestination[1]});
+    } else {
+      setLastEPCDestination(null);
+    }
+  };
 
   const getCustomColors = () => {
     if (settings?.colorPair?.startsWith('custom-')) {
@@ -133,10 +159,12 @@ const Game = ({ settings }) => {
       } else {
         setMessage(`${getColorName(playerColors[currentPlayer])} doit maintenant déplacer un EPC`);
       }
+      console.log('mode',settings?.mode || 'local');
     } catch (error) {
       setMessage('Erreur de connexion au serveur. Le backend est-il démarré?');
       const testBoard = Array(8).fill().map(() => Array(8).fill([{type: 'square', color: null, height: 1}]));
       setBoard(testBoard);
+      
     }
   };
 
@@ -261,9 +289,9 @@ const Game = ({ settings }) => {
           setMessage('Déplacement effectué');
           setSelectedPiece(null);
           setValidMoves([]);
-          setLastPawnPosition({ row: selectedPiece.row, col: selectedPiece.col });
           setGamePhase('move_epc');
           fetchBoard();
+          handleAnimation(selectedPiece, { row, col }, null, null);
         }
       } catch (error) {
         setMessage('Erreur lors de la capture');
@@ -286,9 +314,9 @@ const Game = ({ settings }) => {
           setMessage('Déplacement effectué');
           setSelectedPiece(null);
           setValidMoves([]);
-          setLastPawnPosition({ row: selectedPiece.row, col: selectedPiece.col });
           setGamePhase('move_epc');
           fetchBoard();
+          handleAnimation(selectedPiece, { row, col }, null, null);
         } else {
           setMessage('Mouvement invalide');
         }
@@ -317,9 +345,9 @@ const Game = ({ settings }) => {
         setMessage('Capture et déplacement effectués');
         setPendingCaptured(null);
         setValidMoves([]);
-        setLastPawnPosition({ row: pendingCaptured.from.row, col: pendingCaptured.from.col });
         setGamePhase('move_epc');
         fetchBoard();
+        handleAnimation(pendingCaptured.from, pendingCaptured.to, null, null);
       } else {
         setMessage('Erreur lors de la capture');
       }
@@ -347,10 +375,13 @@ const Game = ({ settings }) => {
         setMessage('Déplacement d\'EPC effectué');
         setSelectedEPC(null);
         setValidEPCMoves([]);
-        setLastPawnPosition(null);
         setCurrentPlayer(currentPlayer === 'player1' ? 'player2' : 'player1');
         setGamePhase('move_pawn');
         fetchBoard();
+        handleAnimation(null, null, selectedEPC, { row, col });
+        if (settings?.mode === 'ai') {
+          handleAIPlay();
+        }
       } else {
         setMessage('Mouvement d\'EPC invalide');
       }
@@ -389,7 +420,7 @@ const Game = ({ settings }) => {
         setGamePhase('move_pawn');
         setSelectedPiece(null);
         setValidMoves([]);
-        setLastPawnPosition(null);
+        handleAnimation(data.pawnPosition, data.pawnDestination, data.EPCPosition, data.EPCDestination);
       } else {
         setMessage('L\'IA n\'a pas pu jouer');
         setAIState(false);
@@ -426,7 +457,7 @@ const Game = ({ settings }) => {
       setValidMoves([]);
       setSelectedEPC(null);
       setValidEPCMoves([]);
-      setLastPawnPosition(null);
+      handleAnimation(null, null, null, null);
       setCurrentPlayer('player1');
       setGamePhase('move_pawn');
       setAIState(false);
@@ -559,6 +590,9 @@ const Game = ({ settings }) => {
               playerColors={playerColors}
               gamePhase={gamePhase}
               lastPawnPosition={lastPawnPosition}
+              lastMoveDest={lastPawnDestination}
+              lastEPCPosition={lastEPCPosition}
+              lastEPCDestination={lastEPCDestination}
             />
           ) : (
             <p>Chargement du plateau...</p>
