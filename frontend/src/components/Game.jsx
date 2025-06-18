@@ -299,9 +299,8 @@ const Game = ({ settings }) => {
         setCurrentPlayer(currentPlayer === 'player1' ? 'player2' : 'player1');
         setGamePhase('move_pawn');
         updateBoard(result.board);
-        console.log('mode:', settings?.mode);
         if (settings?.mode === 'ai') {
-          handleAIPlay();
+          handleAIPlay(result.board);
         }
       } else {
         setMessage('Mouvement d\'EPC invalide');
@@ -310,7 +309,7 @@ const Game = ({ settings }) => {
       setMessage('Erreur lors du déplacement EPC');
     }
   };
-  const handleAIPlay = async () => {
+  const handleAIPlay = async (board) => {
     //if (gamePhase !== 'move_pawn' || currentPlayer !== 'player2') return;
     try {
       setAIState(true);
