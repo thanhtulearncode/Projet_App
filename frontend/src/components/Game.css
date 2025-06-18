@@ -302,7 +302,7 @@
 
   
   .game-board-center {
-    max-width: 90vw;        
+    max-width: 80vw;        
     overflow-x: auto;        
     box-sizing: border-box;  
   }
