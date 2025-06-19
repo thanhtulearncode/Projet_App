@@ -610,10 +610,9 @@ const Game = ({ settings }) => {
   // AI Difficulty Selector Component
   const AIDifficultySelector = () => {
     if (!showDifficultySelector) return null;
-    
     return (
-      <div className="ai-difficulty-selector">
-        <div className="difficulty-selector-content">
+      <div className="modal-overlay" onClick={() => setShowDifficultySelector(false)}>
+        <div className="modal-content ai-difficulty-modal" onClick={e => e.stopPropagation()}>
           <h3>Changer le niveau de l'IA</h3>
           <div className="difficulty-options">
             <button 
