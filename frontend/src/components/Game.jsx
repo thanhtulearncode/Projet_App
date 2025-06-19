@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Board from './Board';
 import Rules from './Rules';
 import API_BASE_URL from '../config/api';
@@ -20,6 +20,7 @@ const Game = ({ settings }) => {
   const [lastEPCPosition, setLastEPCPosition] = useState(null);
   const [lastEPCDestination, setLastEPCDestination] = useState(null);
   const [capturedDestination, setCapturedDestination] = useState(null);
+
   // Gestion de la fin de partie
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(null);
@@ -42,10 +43,15 @@ const Game = ({ settings }) => {
     }
     switch (settings?.colorPair) {
       case 'red-green':
-        return { player1: 'red', player2: 'green' };
-      case 'orange-blue':
-        return { player1: 'orange', player2: 'blue' };
-      
+        return { player1: 'red', player2: 'green' }
+      case 'gold-blue':
+        return { player1: 'gold', player2: 'blue' }
+      case 'purple-cyan':
+        return { player1: 'purple', player2: 'cyan'}
+      case 'brown-cream':
+        return { player1: 'brown', player2: 'cream'}
+      case 'navy-coral':
+        return { player1: 'navy', player2: 'coral'}
       default:
         return { player1: 'white', player2: 'black' };
     }
@@ -73,7 +79,7 @@ const Game = ({ settings }) => {
     } else {
       setLastEPCDestination(null);
     }
-    if (capturedDestination !== null) {
+   if (capturedDestination !== null) {
       setCapturedDestination({row : capturedDestination[0], col : capturedDestination[1]});
     } else {
       setCapturedDestination(null);
@@ -90,13 +96,13 @@ const Game = ({ settings }) => {
   };
 
   useEffect(() => {
-    fetchBoard();
+    fetchBoard('move_pawn', 'player1');
     if (settings?.mode === 'ai') {
       fetchAIDifficulty();
     }
   }, []);
 
-  const updateBoard = (newBoard) => {
+  const updateBoard = (newBoard, gamePhase, currentPlayer) => {
     setBoard(newBoard);
     if (gamePhase === 'move_pawn') {
         setMessage(`C'est au tour des ${getColorName(playerColors[currentPlayer])} de déplacer un pion`);
@@ -155,7 +161,7 @@ const Game = ({ settings }) => {
     }
   };
 
-  const fetchBoard = async () => {
+  const fetchBoard = async (gamePhase, currentPlayer) => {
     try {
       const params = new URLSearchParams({
         colorPair: settings.colorPair,
@@ -288,6 +294,18 @@ const Game = ({ settings }) => {
     fetchValidEPCMoves(row, col);
   };
 
+  const playMoveSound = () => {
+    const audio = new window.Audio('/sounds/move.mp3');
+    audio.volume = 0.5;
+    audio.play();
+  };
+
+  // Fonction pour jouer un son d'alerte
+  const playClockSound = () => {
+    const audio = new window.Audio('/sounds/clock.mp3');
+    audio.play();
+  };
+
   // Déplacement pion (inclut capture)
   const handleMove = async (row, col) => {
     if (gamePhase !== 'move_pawn') return;
@@ -328,7 +346,7 @@ const Game = ({ settings }) => {
           setSelectedPiece(null);
           setValidMoves([]);
           setGamePhase('move_epc');
-          updateBoard(result.board);
+          updateBoard(result.board, 'move_epc', currentPlayer);
           handleAnimation(selectedPiece, { row, col }, null, null);
         }
       } catch (error) {
@@ -351,11 +369,12 @@ const Game = ({ settings }) => {
         });
         const result = await response.json();
         if (result.success) {
+          playMoveSound(); // <-- Joue le son ici
           setMessage('Déplacement effectué');
           setSelectedPiece(null);
           setValidMoves([]);
           setGamePhase('move_epc');
-          updateBoard(result.board);
+          updateBoard(result.board, 'move_epc', currentPlayer);
           handleAnimation(selectedPiece, { row, col }, null, null);
         } else {
           setMessage('Mouvement invalide');
@@ -388,7 +407,7 @@ const Game = ({ settings }) => {
         setPendingCaptured(null);
         setValidMoves([]);
         setGamePhase('move_epc');
-        updateBoard(result.board);
+        updateBoard(result.board, 'move_epc', currentPlayer);
         handleAnimation(pendingCaptured.from, pendingCaptured.to, null, null);
       } else {
         setMessage('Erreur lors de la capture');
@@ -421,7 +440,7 @@ const Game = ({ settings }) => {
         setValidEPCMoves([]);
         setCurrentPlayer(currentPlayer === 'player1' ? 'player2' : 'player1');
         setGamePhase('move_pawn');
-        updateBoard(result.board);
+        updateBoard(result.board, 'move_pawn', currentPlayer === 'player1' ? 'player2' : 'player1');
         handleAnimation(null, null, selectedEPC, { row, col });
         if (settings?.mode === 'ai') {
           handleAIPlay(result.board);
@@ -462,12 +481,13 @@ const Game = ({ settings }) => {
       const data = await response.json();
       if (data.success) { 
         setMessage(`L'IA ${getDifficultyName(data.ai_difficulty || currentAIDifficulty)} a joué en ${moveTime.toFixed(2)}s`);
-        updateBoard(data.board);
+        updateBoard(data.board, 'move_pawn', 'player1');
         setAIState(false);
         setCurrentPlayer('player1');
         setGamePhase('move_pawn');
         setSelectedPiece(null);
         setValidMoves([]);
+        handleAnimation(data.pawnPosition, data.pawnDestination, data.EPCPosition, data.EPCDestination, data.capturedDestination);
         handleAnimation(data.pawnPosition, data.pawnDestination, data.EPCPosition, data.EPCDestination, data.capturedDestination);
       } else {
         setMessage('L\'IA n\'a pas pu jouer');
@@ -501,7 +521,7 @@ const Game = ({ settings }) => {
       });
       const response = await fetch(`${API_BASE_URL}/reset?${params}`, { method: 'POST' });
       const data = await response.json();
-      updateBoard(data.board);
+      updateBoard(data.board, 'move_pawn', 'player1');
       setSelectedPiece(null);
       setValidMoves([]);
       setSelectedEPC(null);
@@ -632,10 +652,96 @@ const Game = ({ settings }) => {
     );
   };
 
+  useEffect(() => {
+    // Créer la signature programmatiquement
+    const signature = document.createElement('div');
+    signature.textContent = 'Wall Street';
+    signature.style.position = 'fixed';
+    signature.style.bottom = '20px';
+    signature.style.left = '50%';
+    signature.style.transform = 'translateX(-50%)';
+    signature.style.fontFamily = 'Playfair Display, serif';
+    signature.style.fontStyle = 'italic';
+    signature.style.fontSize = '1.2rem';
+    signature.style.color = 'rgba(255, 215, 0, 0.4)';
+    signature.style.textShadow = '0 2px 10px rgba(0, 0, 0, 0.3)';
+    signature.style.letterSpacing = '2px';
+    signature.style.pointerEvents = 'none';
+    signature.style.zIndex = '1000';
+    signature.style.whiteSpace = 'nowrap';
+    
+    // Ajouter au document
+    document.body.appendChild(signature);
+    
+    // Nettoyage lors du démontage du composant
+    return () => {
+      document.body.removeChild(signature);
+    };
+  }, []);
+
   return (
     <div className="game">
-      <div className="game-flex-container">
-        <div className="game-board-zone">
+      {/* Fond avec effet radial */}
+      <div className="game-background">
+        <div className="game-logo-background"></div>
+        <div className="animated-logo">
+          <div className="logo-building"></div>
+          <div className="logo-building"></div>
+          <div className="logo-building"></div>
+        </div>
+      </div>
+
+      <div className="game-content">
+
+        <div className="game-sidebar mobile-order-1">
+          <div className="game-proverb">
+            "Focus To Win, Strategy To Conquer"
+          </div>
+
+          <div className="game-top-controls">
+            <div className="current-player-indicator">
+              <div 
+                className="player-color-marker" 
+                style={{ backgroundColor: playerColors[currentPlayer] }}
+              ></div>
+            </div>
+
+            <div className="game-actions">
+              {gamePhase === 'move_epc' && (
+                <button className="action-button skip-button" onClick={skipEPCMove}>
+                  Passer
+                </button>
+              )}
+              <button className="action-button reset-button" onClick={resetGame}>
+                Nouvelle partie
+              </button>
+              <button className="action-button rules-button" onClick={() => setShowRules(true)}>
+                Règles
+              </button>
+            </div>
+
+            {message && <div className="message-toast">{message}</div>}
+
+            {settings?.mode === 'ai' && (
+              <div className="ai-badge">
+                <div className="ai-level">
+                  {getDifficultyEmoji(currentAIDifficulty)}
+                  <button 
+                    className="ai-level-button"
+                    onClick={() => setShowDifficultySelector(true)}
+                    disabled={aiState}
+                  >
+                    {getDifficultyName(currentAIDifficulty)}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+
+        </div>
+        <div className="game-board-center mobile-order-2">
+          <div className="board-logo-background"></div>
           {board.length > 0 ? (
             <Board 
               board={board} 
@@ -650,60 +756,22 @@ const Game = ({ settings }) => {
               lastEPCPosition={lastEPCPosition}
               lastEPCDestination={lastEPCDestination}
               capturedDestination={capturedDestination}
+              currentPlayer={currentPlayer}
             />
           ) : (
-            <p>Chargement du plateau...</p>
-          )}
-        </div>
-        <div className="game-info-panel">
-          <button className="rules-side-button" onClick={() => setShowRules(true)}>
-            Règles
-          </button>
-          {settings?.mode === 'ai' && (
-            <div className="ai-controls">
-              <div className="ai-indicator">
-                IA: {getDifficultyName(currentAIDifficulty)} {getDifficultyEmoji(currentAIDifficulty)}
-              </div>
-              <button 
-                className="change-ai-difficulty-button"
-                onClick={() => setShowDifficultySelector(true)}
-                disabled={aiState}
-              >
-                Changer niveau
-              </button>
-              {aiMoveTime && (
-                <div className="ai-move-time">
-                  Dernier coup: {aiMoveTime.toFixed(2)}s
-                </div>
-              )}
+            <div className="loading-board">
+              <div className="spinner"></div>
+              <p>Chargement du plateau...</p>
             </div>
           )}
-          <div className="color-indicator">
-            Couleurs: {getColorName(playerColors.player1)} vs {getColorName(playerColors.player2)}
-          </div>
-          <div className="message">{message}</div>
-          <div className="current-player">
-            Joueur actuel: {getColorName(playerColors[currentPlayer])}
-          </div>
-          <div className="game-phase">
-            Phase: {gamePhase === 'move_pawn' 
-              ? 'Déplacement de pion' 
-              : 'Déplacement d\'un EPC au choix'}
-          </div>
-          {gamePhase === 'move_epc' && (
-            <div className="phase-help">
-              Sélectionnez n'importe quel EPC sans pion pour le déplacer
-            </div>
-          )}
-          {gamePhase === 'move_epc' && (
-            <button className="skip-button" onClick={skipEPCMove}>
-              Passer le déplacement d'EPC
-            </button>
-          )}
-          <button onClick={resetGame} className="reset-button">Nouvelle partie</button>
-          {showRules && <Rules onClose={() => setShowRules(false)} />}
         </div>
+
       </div>
+
+      {/* Règles */}
+      {showRules && <Rules onClose={() => setShowRules(false)} />}
+
+      {/* Fin de partie */}
       {gameOver && (
         <div className="game-over">
           <h2>Fin de la partie</h2>
@@ -711,9 +779,15 @@ const Game = ({ settings }) => {
           <button onClick={resetGame}>Rejouer</button>
         </div>
       )}
+
+      {/* Sélecteur de difficulté IA */}
       <AIDifficultySelector />
+
+      {/* Signature Wall Street élégante */}
+      <div className="wall-street-signature">Wall Street</div>
     </div>
   );
+
 };
 
 export default Game;

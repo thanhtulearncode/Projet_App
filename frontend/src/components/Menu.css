@@ -524,7 +524,7 @@
 }
 
 .settings-controls input[type="range"] {
-  width: 60%;
+  width: 100px;
   margin-left: 15px;
   cursor: pointer;
 }

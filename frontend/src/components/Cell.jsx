@@ -56,22 +56,20 @@ const Cell = ({
     }
 
     if (isCapturedDestination) {
-        cellClassName += ' last-pawn-destination';
+        cellClassName += ' last-pawn-destination';      
     }
 
     return (
         <div 
-            className={cellClassName}
+            className={`${cellClassName} ${isFullscreen ? 'fullscreen' : ''}`}
             onClick={onClick}
             style={{
                 position: 'relative',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                width: isFullscreen ? '100%' : '10vw',
-                height: isFullscreen ? '100%' : '10vw',
-                maxWidth: '50px',
-                maxHeight: '50px',
+                //width: isFullscreen ? '100%' : '64px',
+                //height: isFullscreen ? '100%' : '64px',
             }}
         >
             {/* Affiche toutes les pièces de la pile avec positionnement relatif */}

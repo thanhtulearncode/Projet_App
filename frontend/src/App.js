@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Game from './components/Game';
 import Menu from './components/Menu';
 import './App.css';
@@ -8,6 +8,28 @@ function App() {
   const [gameSettings, setGameSettings] = useState({ mode: null, difficulty: null });
   const [isLoading, setIsLoading] = useState(false);
   const [transition, setTransition] = useState(false);
+
+  // --- Musique de fond ---
+  const [musicEnabled, setMusicEnabled] = useState(true);
+  const [musicVolume, setMusicVolume] = useState(0.7);
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    if (!audioRef.current) {
+      audioRef.current = new window.Audio('/sounds/background.mp3');
+      audioRef.current.loop = true;
+    }
+    audioRef.current.volume = musicVolume; // <-- Ajoute cette ligne pour gérer le volume
+    if (musicEnabled) {
+      audioRef.current.play().catch(() => {});
+    } else {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    return () => {
+      audioRef.current.pause();
+    };
+  }, [musicEnabled, musicVolume]); // <-- Ajoute musicVolume dans le tableau de dépendances
 
   // Effet de transition entre les écrans
   useEffect(() => {
@@ -49,6 +71,8 @@ function App() {
     return '';
   };
 
+  // Modification de la partie return pour ajuster la position de l'indicateur de mode
+
   return (
     <div className={`app-container ${transition ? 'transitioning' : ''}`}>
       {isLoading && (
@@ -67,9 +91,10 @@ function App() {
           <button className="back-to-menu" onClick={handleBackToMenu}>
             <i className="fas fa-arrow-left"></i> Menu
           </button>
-          <div className="game-mode-indicator" style={{ marginBottom: '10px', fontWeight: 'bold', color: '#fff' }}>
+          {/* La ligne de l'indicateur de mode est commentée pour ne pas l'afficher du tout */}
+          {/* <div className="game-mode-indicator" style={{ marginBottom: '10px', fontWeight: 'bold', color: '#fff' }}>
             Mode: {getGameModeText()}
-          </div>
+          </div> */}
           <Game settings={gameSettings} />
         </div>
       )}

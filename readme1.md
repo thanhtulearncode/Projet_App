@@ -21,3 +21,4 @@ npx expo start
 Redemarrger le terminale 
 
 pressing "a" 
+----------------------------

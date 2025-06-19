@@ -3,7 +3,7 @@ import Rules from './Rules';
 import ColorSelector from './ColorSelector';
 import './Menu.css';
 
-function Menu({ onStartGame }) {
+function Menu({ onStartGame, musicEnabled, setMusicEnabled, musicVolume, setMusicVolume }) {
   const [showRules, setShowRules] = useState(false);
   const [showModeSelection, setShowModeSelection] = useState(false);
   const [showDifficultySelection, setShowDifficultySelection] = useState(false);
@@ -72,7 +72,10 @@ function Menu({ onStartGame }) {
     switch (selectedColorPair) {
       case 'black-white': return 'Noir vs Blanc';
       case 'red-green': return 'Rouge vs Vert';
-      case 'orange-blue': return 'Orange vs Bleu';
+      case 'gold-blue': return 'gold vs Bleu';
+      case 'purple-cyan': return 'purple vs cyan'
+      case 'brown-cream': return 'brown-cream'
+      case 'navy-coral': return 'navy-coral'
       default: return 'Couleurs personnalisées';
     }
   };
@@ -286,11 +289,23 @@ function Menu({ onStartGame }) {
                 <div className="settings-controls">
                   <label>
                     <span>Musique</span>
-                    <input type="range" min="0" max="100" defaultValue="70" />
+                    <input
+                      type="checkbox"
+                      checked={musicEnabled}
+                      onChange={e => setMusicEnabled(e.target.checked)}
+                    />
                   </label>
                   <label>
-                    <span>Effets sonores</span>
-                    <input type="range" min="0" max="100" defaultValue="80" />
+                    <span>Volume musique</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={musicVolume}
+                      onChange={e => setMusicVolume(Number(e.target.value))}
+                      disabled={!musicEnabled}
+                    />
                   </label>
                 </div>
               </div>
