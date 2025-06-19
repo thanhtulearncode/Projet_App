@@ -439,3 +439,107 @@
     font-size: 1.2rem;
   }
 }
+
+/* Modal overlay for IA difficulty */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s;
+}
+
+.modal-content.ai-difficulty-modal {
+  background: linear-gradient(135deg, #232526 0%, #414345 100%);
+  border-radius: 18px;
+  padding: 32px 28px 24px 28px;
+  min-width: 320px;
+  max-width: 95vw;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+  border: 3px solid #3498db;
+  position: relative;
+  animation: slideIn 0.2s;
+}
+
+.modal-content.ai-difficulty-modal h3 {
+  color: #ecf0f1;
+  text-align: center;
+  margin-bottom: 22px;
+  font-size: 1.5rem;
+  letter-spacing: 1px;
+}
+
+.modal-content.ai-difficulty-modal .difficulty-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.modal-content.ai-difficulty-modal .difficulty-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #2c3e50;
+  color: #fff;
+  border: 2px solid #3498db;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.2s, border 0.2s, transform 0.15s;
+  box-shadow: 0 2px 8px rgba(44,62,80,0.12);
+}
+
+.modal-content.ai-difficulty-modal .difficulty-option.selected,
+.modal-content.ai-difficulty-modal .difficulty-option:focus {
+  background: #3498db;
+  color: #fff;
+  border-color: #f1c40f;
+  transform: scale(1.04);
+}
+
+.modal-content.ai-difficulty-modal .difficulty-emoji {
+  font-size: 1.5rem;
+}
+
+.modal-content.ai-difficulty-modal .difficulty-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.modal-content.ai-difficulty-modal .difficulty-desc {
+  font-size: 0.98rem;
+  color: #bdc3c7;
+  margin-left: 8px;
+}
+
+.modal-content.ai-difficulty-modal .close-difficulty-selector {
+  margin: 0 auto;
+  display: block;
+  background: linear-gradient(135deg, #27ae60, #16a085);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 24px;
+  font-size: 1.05rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(39,174,96,0.15);
+  transition: background 0.2s, transform 0.15s;
+}
+
+.modal-content.ai-difficulty-modal .close-difficulty-selector:hover {
+  background: linear-gradient(135deg, #16a085, #27ae60);
+  transform: scale(1.05);
+}
+
+@media (max-width: 600px) {
+  .modal-content.ai-difficulty-modal {
+    padding: 18px 6vw 16px 6vw;
+    min-width: unset;
+  }
+}
