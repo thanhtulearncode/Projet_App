@@ -7,12 +7,12 @@ class GameEngine:
     def __init__(self, color_pair='black-white', ai_difficulty='medium'):
         self.color_pair = color_pair
         self.board = self.create_initial_board()
-        self.current_player = 'white'  
+        self.current_player, self.ai_color = self.get_color_pair()  
         self.game_over = False
         
         # Initialize AI with the new difficulty system
         self.ai_difficulty = ai_difficulty
-        self.ai = AIFactory.create_ai(ai_difficulty, 'black')
+        self.ai = AIFactory.create_ai(ai_difficulty, self.ai_color)
         
         print(f"[GameEngine] Initialized with {ai_difficulty} AI for black player")
         
@@ -31,18 +31,28 @@ class GameEngine:
         """Get the current AI difficulty level"""
         return self.ai_difficulty
         
+    def get_color_pair(self):
+        if self.color_pair == 'red-green':
+            color1, color2 = 'red', 'green'
+        elif self.color_pair == 'gold-blue':
+            color1, color2 = 'gold', 'blue'
+        elif self.color_pair == 'purple-cyan':
+            color1, color2 = 'purple','cyan'
+        elif self.color_pair == 'brown-cream':
+            color1, color2 ='brown','cream'
+        elif self.color_pair == 'navy-coral':
+            color1, color2 ='navy','coral'
+        else:
+            color1, color2 ='white','black'
+        return color1, color2
+
     def create_initial_board(self):
         board = [[[] for _ in range(8)] for _ in range(8)]
         for row in range(8):
             for col in range(8):
                 self.add_square(board, row, col)
 
-        if self.color_pair == 'red-green':
-            color1, color2 = 'red', 'green'
-        elif self.color_pair == 'orange-blue':
-            color1, color2 = 'orange', 'blue'
-        else:
-            color1, color2 = 'white', 'black'
+        color1, color2 = self.get_color_pair()
 
         for col in range(8):
             row = (col + 1) % 2

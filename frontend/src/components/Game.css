@@ -60,7 +60,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
@@ -92,7 +91,7 @@
   justify-content: center;
   gap: 40px;
   padding: 15px 30px;
-  background: linear-gradient(135deg, rgba(30, 22, 18, 0.8) 0%, rgba(15, 10, 6, 0.8) 100%);
+  background: linear-gradient(135deg, rgba(126, 81, 60, 0.8) 0%, rgba(15, 10, 6, 0.8) 100%);
   border-radius: 15px;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
   margin-bottom: 30px;
@@ -168,12 +167,12 @@
 }
 
 .reset-button {
-  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  background: linear-gradient(135deg, #284057 0%, #284057 100%);
   color: white;
 }
 
 .reset-button:hover {
-  background: linear-gradient(135deg, #c0392b 0%, #962d22 100%);
+  background: linear-gradient(135deg, #498ece 0%, #498ece 100%);
   transform: translateY(-2px);
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
 }
@@ -248,7 +247,18 @@
 }
 
 /* Plateau centré */
+.game-content {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
 .game-board-center {
+  flex: 1;
+  max-width: 700px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -257,7 +267,7 @@
   box-shadow: 0 15px 45px rgba(0, 0, 0, 0.5);
   border-radius: 15px;
   padding: 10px;
-  background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%); /* Nouveau dégradé plus élégant */
+  background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
   border: 2px solid rgba(255, 215, 0, 0.3);
   transition: all 0.3s ease;
 }
@@ -267,113 +277,154 @@
   border: 2px solid rgba(255, 215, 0, 0.5);
 }
 
-/* Animation de chargement du plateau */
-.loading-board {
+.game-sidebar {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 400px;
-  width: 400px;
+  gap: 20px;
+  max-width: 350px;
+  flex: 1;
 }
 
-.loading-board .spinner {
-  width: 60px;
-  height: 60px;
-  border: 5px solid rgba(213, 206, 163, 0.3);
-  border-top: 5px solid #ffd700;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 20px;
-}
-
-.loading-board p {
-  color: #d5cea3;
-  font-size: 1.2rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Écran de fin de jeu */
-.game-over {
+/* Signature Wall Street élégante en bas de l'écran */
+.wall-street-signature {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.85);
-  z-index: 1000;
-  animation: fadeIn 0.5s ease;
-}
-
-.game-over h2 {
-  font-size: 2.5rem;
-  color: #ffd700;
-  margin-bottom: 20px;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-}
-
-.game-over p {
-  font-size: 1.5rem;
-  color: #d5cea3;
-  margin-bottom: 30px;
-}
-
-.game-over button {
-  padding: 15px 30px;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
   font-size: 1.2rem;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #a47e3b 0%, #8d6e52 100%);
-  color: white;
-  border: none;
-  cursor: pointer;
+  color: rgba(255, 215, 0, 0.4);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  letter-spacing: 2px;
+  pointer-events: none;
+  z-index: 10;
   transition: all 0.3s ease;
+  white-space: nowrap;
+  opacity: 0.7;
 }
 
-.game-over button:hover {
-  background: linear-gradient(135deg, #b89f65 0%, #a47e3b 100%);
-  transform: translateY(-3px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+.wall-street-signature::before,
+.wall-street-signature::after {
+  content: '';
+  position: absolute;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.4), transparent);
+  width: 80px;
+  top: 50%;
 }
 
-/* Media Queries */
-@media (max-width: 900px) {
-  .game-top-controls {
-    flex-direction: column;
-    gap: 15px;
-    padding: 15px;
-  }
-  
-  .game-actions {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .message-toast {
-    font-size: 0.9rem;
-    padding: 10px 20px;
-  }
-  
-  .game-proverb {
-    font-size: 1.5rem;
-  }
+.wall-street-signature::before {
+  right: calc(100% + 10px);
 }
 
+.wall-street-signature::after {
+  left: calc(100% + 10px);
+}
+
+/* Effet de survol subtil */
+.wall-street-signature:hover {
+  color: rgba(255, 215, 0, 0.7);
+  letter-spacing: 3px;
+}
+
+/* Media queries pour s'adapter aux différentes tailles d'écran */
 @media (max-width: 768px) {
+  .wall-street-signature {
+    font-size: 1rem;
+    bottom: 15px;
+  }
+  
+  .wall-street-signature::before,
+  .wall-street-signature::after {
+    width: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .wall-street-signature {
+    font-size: 0.9rem;
+    bottom: 10px;
+  }
+  
+  .wall-street-signature::before,
+  .wall-street-signature::after {
+    width: 20px;
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .game-content {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .game-board-center,
+  .game-sidebar {
+    width: 100%;
+    max-width: 95%;
+  }
+
+  .game-sidebar {
+    align-items: center;
+    text-align: center;
+  }
+
+  .mobile-order-1 {
+    order: 1;
+  }
+
+  .mobile-order-2 {
+    order: 2;
+  }
+
   .player-color-marker {
     width: 30px;
     height: 30px;
   }
-  
+
   .game-top-controls {
+    flex-direction: column;
     gap: 20px;
+    padding: 15px;
+  }
+
+  .game-actions {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .action-button {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+
+  .current-player-indicator span {
+    font-size: 0.9rem;
+  }
+
+  .game-proverb {
+    font-size: 1.5rem;
+  }
+
+  .message-toast {
+    font-size: 0.9rem;
+    padding: 10px 20px;
+  }
+
+   .board {
+    grid-template-columns: repeat(8, minmax(28px, 1fr));
+    width: 90vw;
+    max-width: 100vw;
+    height: 90vw;
+    max-height: 100vw;
+    min-width: 0;
+  }
+  .cell {
+    width: 10vw;
+    height: 10vw;
   }
 }
 
@@ -382,97 +433,112 @@
     width: 25px;
     height: 25px;
   }
-  
-  .game-actions {
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  
-  .action-button {
-    padding: 8px 12px;
-    font-size: 0.85rem;
-  }
-  
-  .current-player-indicator span {
-    font-size: 0.9rem;
-  }
-  
+
   .game-proverb {
     font-size: 1.2rem;
   }
 }
 
-/* Remplacer le fond d'image par un motif simple */
-
-/* Fond derrière la page entière */
-.game-logo-background {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 90%;
-  height: 90%;
-  background: radial-gradient(circle at center, rgba(255, 215, 0, 0.02) 0%, rgba(255, 215, 0, 0) 70%);
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-/* Amélioration de l'arrière-plan du plateau */
-.game-board-center {
+/* Modal overlay for IA difficulty */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 2000;
   display: flex;
-  justify-content: center;
   align-items: center;
-  margin: 0 auto;
+  justify-content: center;
+  animation: fadeIn 0.2s;
+}
+
+.modal-content.ai-difficulty-modal {
+  background: linear-gradient(135deg, #232526 0%, #414345 100%);
+  border-radius: 18px;
+  padding: 32px 28px 24px 28px;
+  min-width: 320px;
+  max-width: 95vw;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+  border: 3px solid #3498db;
   position: relative;
-  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.5);
-  border-radius: 15px;
-  padding: 10px;
-  background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%); /* Nouveau dégradé plus élégant */
-  border: 2px solid rgba(255, 215, 0, 0.3);
-  transition: all 0.3s ease;
+  animation: slideIn 0.2s;
 }
 
-.game-board-center:hover {
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
-  border: 2px solid rgba(255, 215, 0, 0.5);
+.modal-content.ai-difficulty-modal h3 {
+  color: #ecf0f1;
+  text-align: center;
+  margin-bottom: 22px;
+  font-size: 1.5rem;
+  letter-spacing: 1px;
 }
 
-/* Remplacer le motif derrière le plateau par un effet plus élégant */
-.board-logo-background {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 80%;
-  height: 80%;
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 215, 0, 0) 70%);
-  border-radius: 50%;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.8;
-  animation: pulse-subtle 5s infinite alternate;
+.modal-content.ai-difficulty-modal .difficulty-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 18px;
 }
 
-@keyframes pulse-subtle {
-  0% { opacity: 0.4; transform: translate(-50%, -50%) scale(0.95); }
-  100% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.05); }
+.modal-content.ai-difficulty-modal .difficulty-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #2c3e50;
+  color: #fff;
+  border: 2px solid #3498db;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.2s, border 0.2s, transform 0.15s;
+  box-shadow: 0 2px 8px rgba(44,62,80,0.12);
 }
 
-/* Ajustements pour les écrans mobiles */
-@media (max-width: 768px) {
-  .player-color-marker {
-    width: 30px;
-    height: 30px;
-  }
-  
-  .game-top-controls {
-    gap: 20px;
-  }
+.modal-content.ai-difficulty-modal .difficulty-option.selected,
+.modal-content.ai-difficulty-modal .difficulty-option:focus {
+  background: #3498db;
+  color: #fff;
+  border-color: #f1c40f;
+  transform: scale(1.04);
 }
 
-@media (max-width: 480px) {
-  .player-color-marker {
-    width: 25px;
-    height: 25px;
+.modal-content.ai-difficulty-modal .difficulty-emoji {
+  font-size: 1.5rem;
+}
+
+.modal-content.ai-difficulty-modal .difficulty-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.modal-content.ai-difficulty-modal .difficulty-desc {
+  font-size: 0.98rem;
+  color: #bdc3c7;
+  margin-left: 8px;
+}
+
+.modal-content.ai-difficulty-modal .close-difficulty-selector {
+  margin: 0 auto;
+  display: block;
+  background: linear-gradient(135deg, #27ae60, #16a085);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 24px;
+  font-size: 1.05rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(39,174,96,0.15);
+  transition: background 0.2s, transform 0.15s;
+}
+
+.modal-content.ai-difficulty-modal .close-difficulty-selector:hover {
+  background: linear-gradient(135deg, #16a085, #27ae60);
+  transform: scale(1.05);
+}
+
+@media (max-width: 600px) {
+  .modal-content.ai-difficulty-modal {
+    padding: 18px 6vw 16px 6vw;
+    min-width: unset;
   }
 }

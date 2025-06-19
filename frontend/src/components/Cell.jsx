@@ -18,6 +18,7 @@ const Cell = ({
     isLastPawnDestination, 
     isLastEPCPosition,
     isLastEPCDestination,
+    isCapturedDestination,
     animateMove,
     isFullscreen // <-- Nouvelle prop
 }) => {
@@ -47,24 +48,28 @@ const Cell = ({
     }
 
     if (isLastEPCPosition) {
-        cellClassName += ' last-pawn-postition';
+        cellClassName += ' last-pawn-position';
     }
 
     if (isLastEPCDestination) {
         cellClassName += ' last-pawn-destination';   
     }
 
+    if (isCapturedDestination) {
+        cellClassName += ' last-pawn-destination';      
+    }
+
     return (
         <div 
-            className={cellClassName}
+            className={`${cellClassName} ${isFullscreen ? 'fullscreen' : ''}`}
             onClick={onClick}
             style={{
                 position: 'relative',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                width: isFullscreen ? '100%' : '64px',
-                height: isFullscreen ? '100%' : '64px',
+                //width: isFullscreen ? '100%' : '64px',
+                //height: isFullscreen ? '100%' : '64px',
             }}
         >
             {/* Affiche toutes les pièces de la pile avec positionnement relatif */}
@@ -95,10 +100,34 @@ const Cell = ({
             
             {/* Badge de hauteur de pile carrée - plus grand en mode plein écran */}
             {stack.filter(piece => mapType(piece.type) === 'square').length > 0 && (
-                <span className={`stack-badge ${isFullscreen ? 'fullscreen' : ''}`}>
-                    {stack.filter(piece => mapType(piece.type) === 'square').length}
-                </span>
+                (() => {
+                    const squareCount = stack.filter(piece => mapType(piece.type) === 'square').length;
+                    const getColor = (count) => {
+                        switch (count) {
+                            case 1: return '#e0e0e0'; //ff0000 ff6666 ffb266 ffff99 e0e0e0
+                            case 2: return '#ffff99'; 
+                            case 3: return '#ffb266'; 
+                            case 4: return '#ff6666'; 
+                            case 5: return '#ff0000'; 
+                            default: return '#ff0000'; 
+                        }
+                    };
+
+                    return (
+                        <span
+                            className={`stack-badge ${isFullscreen ? 'fullscreen' : ''}`}
+                            style={{ 
+                                backgroundColor: getColor(squareCount),
+                                color: '#000',
+                                border: `2px solid rgb(97, 44, 1)`,
+                            }}
+                        >
+                            {squareCount}
+                        </span>
+                    );
+                })()
             )}
+
             
             {/* Indicateur visuel pour la position d'origine du pion */}
             {isLastPawnPosition && gamePhase === 'move_epc' && (
