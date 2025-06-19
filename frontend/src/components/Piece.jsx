@@ -49,6 +49,31 @@ const Piece = ({ type, color, stackIndex, stackHeight, isFullscreen, playerColor
                     borderColor = '#bbb';
                     shadow = '0 2px 8px #8888';
                     break;
+                case 'gold':
+                    background = 'radial-gradient(circle at 30% 30%, #ffe066 60%, #bfa100 100%)';
+                    borderColor = '#bfa100';
+                    shadow = '0 2px 8px #bfa100aa';
+                    break;
+                case 'blue':
+                    background = 'radial-gradient(circle at 30% 30%, #85caff 60%, #2980b9 100%)';
+                    borderColor = '#1F618D';
+                    shadow = '0 2px 8px #2980b9aa';
+                    break;
+                case 'brown':
+                    background = 'radial-gradient(circle at 30% 30%, #bc8f6f 60%, #795548 100%)';
+                    borderColor = '#795548';
+                    shadow = '0 2px 8px #795548aa';
+                    break;
+                case 'cream':
+                    background = 'radial-gradient(circle at 30% 30%, #fffdd0 60%, #f5eed6 100%)';
+                    borderColor = '#f5eed6';
+                    shadow = '0 2px 8px #f5eed6aa';
+                    break;
+                case 'navy':
+                    background = 'radial-gradient(circle at 30% 30%, #5a7bb7 60%, #001f3f 100%)';
+                    borderColor = '#001f3f';
+                    shadow = '0 2px 8px #001f3faa';
+                    break;
                 case 'red':
                     background = 'radial-gradient(circle at 30% 30%, #ff6b6b 60%, #b22222 100%)';
                     borderColor = '#922B21';
@@ -59,15 +84,20 @@ const Piece = ({ type, color, stackIndex, stackHeight, isFullscreen, playerColor
                     borderColor = '#1E8449';
                     shadow = '0 2px 8px #228B22aa';
                     break;
-                case 'orange':
-                    background = 'radial-gradient(circle at 30% 30%, #ffd580 60%, #e67e22 100%)';
-                    borderColor = '#BA4A00';
-                    shadow = '0 2px 8px #e67e22aa';
+                case 'purple':
+                    background = 'radial-gradient(circle at 30% 30%, #d1aaff 60%, #8e44ad 100%)';
+                    borderColor = '#8e44ad';
+                    shadow = '0 2px 8px #8e44adaa';
                     break;
-                case 'blue':
-                    background = 'radial-gradient(circle at 30% 30%, #85caff 60%, #2980b9 100%)';
-                    borderColor = '#1F618D';
-                    shadow = '0 2px 8px #2980b9aa';
+                case 'cyan':
+                    background = 'radial-gradient(circle at 30% 30%, #a7ffff 60%, #00bcd4 100%)';
+                    borderColor = '#00bcd4';
+                    shadow = '0 2px 8px #00bcd4aa';
+                    break;
+                case 'coral':
+                    background = 'radial-gradient(circle at 30% 30%, #ffbfa3 60%, #ff7f50 100%)';
+                    borderColor = '#ff7f50';
+                    shadow = '0 2px 8px #ff7f50aa';
                     break;
                 default:
                     background = trueColor;
