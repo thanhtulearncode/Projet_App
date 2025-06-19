@@ -81,24 +81,26 @@ function App() {
           <div className="loading-text">Chargement...</div>
         </div>
       )}
-      
+
       {showMenu ? (
         <div className={`menu-view ${transition ? 'fade-out' : 'fade-in'}`}>
-          <Menu onStartGame={handleStartGame} />
+          <Menu
+            onStartGame={handleStartGame}
+            musicEnabled={musicEnabled}
+            setMusicEnabled={setMusicEnabled}
+            musicVolume={musicVolume}
+            setMusicVolume={setMusicVolume}
+          />
         </div>
       ) : (
         <div className={`game-view ${transition ? 'fade-out' : 'fade-in'}`}>
           <button className="back-to-menu" onClick={handleBackToMenu}>
             <i className="fas fa-arrow-left"></i> Menu
           </button>
-          {/* La ligne de l'indicateur de mode est commentée pour ne pas l'afficher du tout */}
-          {/* <div className="game-mode-indicator" style={{ marginBottom: '10px', fontWeight: 'bold', color: '#fff' }}>
-            Mode: {getGameModeText()}
-          </div> */}
           <Game settings={gameSettings} />
         </div>
       )}
-      
+
       <div className="app-background"></div>
     </div>
   );
