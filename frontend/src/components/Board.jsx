@@ -8,6 +8,7 @@ const Board = ({
   validMoves, 
   onCellClick, 
   playerColors,
+  getColorName,
   gamePhase,
   lastPawnPosition,
   lastMoveDest,
@@ -145,11 +146,11 @@ const Board = ({
             <div className="game-phase">
               {gamePhase === 'move_pawn' ? 'Phase: Déplacement de Pion' : 'Phase: Déplacement d\'EPC'}
             </div>
-            {currentPlayer && (
-              <div className="player-turn" style={{color: playerColors[currentPlayer]}}>
-                Tour: Joueur {currentPlayer}
-              </div>
-            )}
+            <br/>
+            <div className="player-turn" style={{color: 'white'}}>
+              Tour: Joueur {getColorName(playerColors[currentPlayer])}
+            </div>
+            <br/>
           </div>
         </div>
       ) : (

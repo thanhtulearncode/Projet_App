@@ -7,7 +7,7 @@ import random
 import os
 
 app = FastAPI()
-game = GameEngine()
+#game = GameEngine()
 
 ALLOWED_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000,https://wall-street-game.vercel.app").split(",")
 
@@ -21,43 +21,39 @@ app.add_middleware(
 
 @app.get("/board")
 def get_board(colorPair: str = "black-white"):
-    global game
+    game = GameEngine()
     if game.color_pair != colorPair:
         game = GameEngine(color_pair=colorPair)
     return game.get_state()
 
-@app.get("/ai_difficulty")
-def get_ai_difficulty():
-    """Get the current AI difficulty level"""
-    return {"difficulty": game.get_ai_difficulty()}
-
-@app.post("/set_ai_difficulty")
-def set_ai_difficulty(data: dict):
-    """Set the AI difficulty level"""
+@app.post("/valid_moves")
+def get_valid_moves(data:dict):
     try:
-        difficulty = data.get('difficulty', 'medium')
-        if difficulty not in ['easy', 'medium', 'hard']:
-            raise HTTPException(status_code=400, detail="Invalid difficulty level. Use 'easy', 'medium', or 'hard'")
-        
-        game.set_ai_difficulty(difficulty)
-        return {
-            "success": True,
-            "difficulty": difficulty,
-            "message": f"AI difficulty set to {difficulty}"
-        }
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-@app.get("/valid_moves/{row}/{col}")
-def get_valid_moves(row: int, col: int):
-    try:
+        color_part = data.get('colorPair', 'black-white')
+        game = GameEngine(color_pair=color_part)
+        board = data.get('board', None)
+        current_player = data.get('currentPlayer', None)
+        row = data['row']
+        print(f"Row: {row}")
+        col = data['col']
+        print(f"Col: {col}")
+        game.update(board, current_player)
+        print(f"Getting valid moves for position: ({row}, {col})")
         return game.get_valid_moves(row, col)
+        
     except Exception as e:
+        print(f"Error in /valid_moves: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/move_pawn")
 async def make_move(data: dict):
     try:
+        color_pair = data.get('colorPair', 'black-white')
+        game = GameEngine(color_pair=color_pair)
+        board = data.get('board', None)
+        current_player = data.get('currentPlayer', None)
+        if board is not None:
+            game.update(board, current_player)
         start_row = data['start_row']
         start_col = data['start_col']
         end_row = data['end_row']
@@ -65,6 +61,7 @@ async def make_move(data: dict):
         
         success, captured = game.move_pion(start_row, start_col, end_row, end_col)
         return {
+            "board": game.get_state(),
             "success": success,
             "captured": captured,
             "current_player": game.current_player
@@ -74,7 +71,6 @@ async def make_move(data: dict):
     
 @app.post("/reset")
 def reset_game(request: Request):
-    global game
     colorPair = "black-white"
     ai_difficulty = "medium"
     try:
@@ -90,14 +86,22 @@ def reset_game(request: Request):
     
     game = GameEngine(color_pair=colorPair, ai_difficulty=ai_difficulty)
     return {
+        
         "status": "Game reset",
         "ai_difficulty": ai_difficulty,
-        "color_pair": colorPair
+        "color_pair": colorPair,
+        "board": game.get_state()
     }
 
 @app.post("/move_square")
 def move_square(data: dict):
     try:
+        color_pair = data.get('colorPair', 'black-white')
+        game = GameEngine(color_pair=color_pair)
+        board = data.get('board', None)
+        current_player = data.get('currentPlayer', None)
+        if board is not None:
+            game.update(board, current_player)
         src_row = data['src_row']
         src_col = data['src_col']
         dst_row = data['dst_row']
@@ -106,7 +110,7 @@ def move_square(data: dict):
         return {
             "success": success,
             "current_player": game.current_player,
-            "state": game.get_state()
+            "board": game.get_state()
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -114,6 +118,12 @@ def move_square(data: dict):
 @app.post("/attack_pion")
 def attack_pion_api(data: dict):
     try:
+        color_pair = data.get('colorPair', 'black-white')
+        game = GameEngine(color_pair=color_pair)
+        board = data.get('board', None)
+        current_player = data.get('currentPlayer', None)
+        if board is not None:
+            game.update(board, current_player)
         start_row = data['start_row']
         start_col = data['start_col']
         end_row = data['end_row']
@@ -126,30 +136,47 @@ def attack_pion_api(data: dict):
             "captured": bool(captured),
             "captured_valid_dest": captured_valid_dest,
             "current_player": game.current_player,
-            "state": game.get_state()
+            "board": game.get_state()
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.get("/is_game_over")
-def is_game_over():
+@app.post("/is_game_over")
+def is_game_over(data: dict = {}):
     # Utilise la méthode check_game_over existante
+    try:
+        color_pair = data.get('colorPair', 'black-white')
+        game = GameEngine(color_pair=color_pair)
+        board = data.get('board', None)
+        current_player = data.get('currentPlayer', None)
+        if board is not None:
+            game.update(board, current_player)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid board data")
     if game.check_game_over():
         return {"game_over": True, "winner": game.get_winner()}
     return {"game_over": False, "winner": None}
 
 @app.post("/ai_move")
-def ai_move(data: dict = {}, colorPair: str = "black-white"):
-    global game
-    # Re-initialize the game if the colorPair is different
-    if hasattr(game, 'color_pair') and game.color_pair != colorPair:
-        game = GameEngine(color_pair=colorPair)
+def ai_move(data: dict = {}):
+    
+    try:
+        color_pair = data.get('colorPair', 'black-white')
+        game = GameEngine(color_pair=color_pair)
+        board = data.get('board', None)
+        current_player = data.get('currentPlayer', None)
+        if board is not None:
+            game.update(board, current_player)
+        ai_difficulty = data.get('difficulty', 'medium')
+        game.set_ai_difficulty(ai_difficulty)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid board data")
     try:
         print(f"[AI] {game.ai.difficulty} AI is thinking...")
         try:
             move = game.ai.make_decision(game)
             print("aaaaa")
-            print(game.ai.depth)
+            #print(game.ai.depth)
 
             print(f"[AI] Move decision: {move}")
         except Exception as e:
@@ -206,7 +233,7 @@ def ai_move(data: dict = {}, colorPair: str = "black-white"):
         return {
             "success": success,
             "current_player": game.current_player,
-            "state": game.get_state(),
+            "board": game.get_state(),
             "ai_difficulty": game.get_ai_difficulty(),
             "pawnPosition": move_position,
             "pawnDestination": move_destination,

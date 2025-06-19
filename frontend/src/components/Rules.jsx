@@ -38,7 +38,7 @@ const Rules = ({ onClose }) => {
         <h3>Fin de partie</h3>
         <p>La partie s'arrête à l'instant où un joueur, qui devrait déplacer un EPC, ne peut plus le faire.</p>
         <p>Le gagnant est celui qui a le plus de pions situés sur des buildings.</p>
-        <p>En cas d'égalité, le vainqueur est celui qui possède le plus de pions situés sur des EPC de 4 pièces, puis de 3, etc.</p>
+        <p>En cas d'égalité, le vainqueur est celui qui possède le plus de pions situés sur des EPC de 5 pièces, puis de 4, etc.</p>
       </div>
     </div>
   );

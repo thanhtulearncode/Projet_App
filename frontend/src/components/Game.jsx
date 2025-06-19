@@ -58,7 +58,7 @@ const Game = ({ settings }) => {
   };
   const playerColors = getPlayerColors();
 
-  const handleAnimation = (lastPawnPosition, lastPawnDestination, lastEPCPosition, lastEPCDestination, capturedDestination=null) => {
+  const handleAnimation = (lastPawnPosition, lastPawnDestination, lastEPCPosition, lastEPCDestination) => {
     if (lastPawnPosition !== null) {
       setLastPawnPosition({row : lastPawnPosition[0],col: lastPawnPosition[1]});
     } else {
@@ -101,6 +101,15 @@ const Game = ({ settings }) => {
       fetchAIDifficulty();
     }
   }, []);
+
+  const updateBoard = (newBoard, gamePhase, currentPlayer) => {
+    setBoard(newBoard);
+    if (gamePhase === 'move_pawn') {
+        setMessage(`C'est au tour des ${getColorName(playerColors[currentPlayer])} de déplacer un pion`);
+      } else {
+        setMessage(`${getColorName(playerColors[currentPlayer])} doit maintenant déplacer un EPC`);
+      }
+  };
 
   // Fetch current AI difficulty from backend
   const fetchAIDifficulty = async () => {
@@ -184,17 +193,22 @@ const Game = ({ settings }) => {
   // Mouvements valides pion
   const fetchValidMoves = async (row, col) => {
     try {
-      const params = new URLSearchParams({
-        mode: settings?.mode || 'local',
-        difficulty: settings?.difficulty || 'medium',
-        colorPair: settings?.colorPair || 'black-white',
-        ...getCustomColors()
+      const response = await fetch(`http://localhost:8000/valid_moves`,{
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          board: board,
+          currentPlayer: playerColors[currentPlayer],
+          row: row,
+          col: col,
+          colorPair: settings?.colorPair || 'black-white',
+        })
       });
-      const response = await fetch(`${API_BASE_URL}/valid_moves/${row}/${col}?${params}`);
       if (!response.ok) throw new Error('Erreur réseau');
       const data = await response.json();
       setValidMoves(Array.isArray(data) ? data : data.validMoves || []);
     } catch (error) {
+      console.error('Erreur lors de la récupération des mouvements valides:', error);
       setMessage('Erreur lors de la récupération des mouvements valides');
     }
   };
@@ -202,11 +216,17 @@ const Game = ({ settings }) => {
   // Mouvements valides EPC
   const fetchValidEPCMoves = async (row, col) => {
     try {
-      const params = new URLSearchParams({
-        colorPair: settings?.colorPair || 'black-white',
-        ...getCustomColors()
+      const response = await fetch(`${API_BASE_URL}/valid_moves`,{
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          board: board,
+          currentPlayer: playerColors[currentPlayer],
+          row: row,
+          col: col,
+          colorPair: settings?.colorPair || 'black-white'
+        })
       });
-      const response = await fetch(`${API_BASE_URL}/valid_moves/${row}/${col}?${params}`);
       if (!response.ok) throw new Error(`Erreur réseau: ${response.status}`);
       const data = await response.json();
       setValidEPCMoves(Array.isArray(data) ? data : data.validMoves || []);
@@ -288,10 +308,13 @@ const Game = ({ settings }) => {
       // Capture
       try {
         const attackBody = {
+          board: board,
+          currentPlayer: playerColors[currentPlayer],
           start_row: selectedPiece.row,
           start_col: selectedPiece.col,
           end_row: row,
-          end_col: col
+          end_col: col,
+          colorPair: settings?.colorPair || 'black-white'
         };
         const response = await fetch(`${API_BASE_URL}/attack_pion`, {
           method: 'POST',
@@ -315,7 +338,7 @@ const Game = ({ settings }) => {
           setSelectedPiece(null);
           setValidMoves([]);
           setGamePhase('move_epc');
-          fetchBoard('move_epc', currentPlayer);
+          updateBoard(result.board, 'move_epc', currentPlayer);
           handleAnimation(selectedPiece, { row, col }, null, null);
         }
       } catch (error) {
@@ -328,10 +351,13 @@ const Game = ({ settings }) => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            board: board,
+            currentPlayer: playerColors[currentPlayer],
             start_row: selectedPiece.row,
             start_col: selectedPiece.col,
             end_row: row,
-            end_col: col
+            end_col: col,
+            colorPair: settings?.colorPair || 'black-white'
           })
         });
         const result = await response.json();
@@ -341,7 +367,7 @@ const Game = ({ settings }) => {
           setSelectedPiece(null);
           setValidMoves([]);
           setGamePhase('move_epc');
-          fetchBoard('move_epc', currentPlayer);
+          updateBoard(result.board, 'move_epc', currentPlayer);
           handleAnimation(selectedPiece, { row, col }, null, null);
         } else {
           setMessage('Mouvement invalide');
@@ -359,11 +385,14 @@ const Game = ({ settings }) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          board: board,
+          currentPlayer: playerColors[currentPlayer],
           start_row: pendingCaptured.from.row,
           start_col: pendingCaptured.from.col,
           end_row: pendingCaptured.to.row,
           end_col: pendingCaptured.to.col,
-          captured_dest: [row, col]
+          captured_dest: [row, col],
+          colorPair: settings?.colorPair || 'black-white'
         })
       });
       const result = await response.json();
@@ -372,7 +401,7 @@ const Game = ({ settings }) => {
         setPendingCaptured(null);
         setValidMoves([]);
         setGamePhase('move_epc');
-        fetchBoard('move_epc', currentPlayer);
+        updateBoard(result.board, 'move_epc', currentPlayer);
         handleAnimation(pendingCaptured.from, pendingCaptured.to, null, null);
       } else {
         setMessage('Erreur lors de la capture');
@@ -390,10 +419,13 @@ const Game = ({ settings }) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          board: board,
+          currentPlayer: playerColors[currentPlayer],
           src_row: selectedEPC.row,
           src_col: selectedEPC.col,
           dst_row: row,
-          dst_col: col
+          dst_col: col,
+          colorPair: settings?.colorPair || 'black-white'
         })
       });
       const result = await response.json();
@@ -403,10 +435,10 @@ const Game = ({ settings }) => {
         setValidEPCMoves([]);
         setCurrentPlayer(currentPlayer === 'player1' ? 'player2' : 'player1');
         setGamePhase('move_pawn');
-        fetchBoard('move_pawn', currentPlayer === 'player1' ? 'player2' : 'player1');
+        updateBoard(result.board, 'move_pawn', currentPlayer === 'player1' ? 'player2' : 'player1');
         handleAnimation(null, null, selectedEPC, { row, col });
         if (settings?.mode === 'ai') {
-          handleAIPlay();
+          handleAIPlay(result.board);
         }
       } else {
         setMessage('Mouvement d\'EPC invalide');
@@ -415,8 +447,8 @@ const Game = ({ settings }) => {
       setMessage('Erreur lors du déplacement EPC');
     }
   };
-
-  const handleAIPlay = async () => {
+  const handleAIPlay = async (board) => {
+    //if (gamePhase !== 'move_pawn' || currentPlayer !== 'player2') return;
     try {
       setAIState(true);
       setMessage(`L'IA ${getDifficultyName(currentAIDifficulty)} réfléchit...`);
@@ -429,23 +461,28 @@ const Game = ({ settings }) => {
       const response = await fetch(`${API_BASE_URL}/ai_move?${params}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
+        body: JSON.stringify({
+          board : board,
+          currentPlayer: playerColors[currentPlayer],
+          playerColor: playerColors.player2,
+          difficulty: currentAIDifficulty || 'medium',
+          colorPair: settings?.colorPair || 'black-white',
+        })
       });
-      
       const endTime = Date.now();
       const moveTime = (endTime - startTime) / 1000; // Convert to seconds
       setAiMoveTime(moveTime);
-      
       if (!response.ok) throw new Error('Erreur réseau');
       const data = await response.json();
       if (data.success) { 
         setMessage(`L'IA ${getDifficultyName(data.ai_difficulty || currentAIDifficulty)} a joué en ${moveTime.toFixed(2)}s`);
-        fetchBoard('move_pawn', 'player1');
+        updateBoard(data.board, 'move_pawn', 'player1');
         setAIState(false);
         setCurrentPlayer('player1');
         setGamePhase('move_pawn');
         setSelectedPiece(null);
         setValidMoves([]);
+        handleAnimation(data.pawnPosition, data.pawnDestination, data.EPCPosition, data.EPCDestination, data.capturedDestination);
         handleAnimation(data.pawnPosition, data.pawnDestination, data.EPCPosition, data.EPCDestination, data.capturedDestination);
       } else {
         setMessage("L'IA n'a pas pu jouer");
@@ -481,8 +518,9 @@ const Game = ({ settings }) => {
         ai_difficulty: currentAIDifficulty,
         ...getCustomColors()
       });
-      await fetch(`${API_BASE_URL}/reset?${params}`, { method: 'POST' });
-      fetchBoard('move_pawn', 'player1');
+      const response = await fetch(`${API_BASE_URL}/reset?${params}`, { method: 'POST' });
+      const data = await response.json();
+      updateBoard(data.board, 'move_pawn', 'player1');
       setSelectedPiece(null);
       setValidMoves([]);
       setSelectedEPC(null);
@@ -516,7 +554,15 @@ const Game = ({ settings }) => {
   // Vérifie la fin du jeu
   const checkGameOver = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/is_game_over`);
+      const response = await fetch(`${API_BASE_URL}/is_game_over`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          board: board,
+          currentPlayer: playerColors[currentPlayer],
+          colorPair: settings?.colorPair || 'black-white',
+        })    
+      });
       if (!response.ok) throw new Error('Erreur réseau');
       const data = await response.json();
       if (data.game_over) {
@@ -571,7 +617,7 @@ const Game = ({ settings }) => {
           <div className="difficulty-options">
             <button 
               className={`difficulty-option ${currentAIDifficulty === 'easy' ? 'selected' : ''}`}
-              onClick={() => setAIDifficulty('easy')}
+              onClick={() => setCurrentAIDifficulty('easy')}
             >
               <span className="difficulty-emoji">😊</span>
               <span className="difficulty-name">Facile</span>
@@ -579,7 +625,7 @@ const Game = ({ settings }) => {
             </button>
             <button 
               className={`difficulty-option ${currentAIDifficulty === 'medium' ? 'selected' : ''}`}
-              onClick={() => setAIDifficulty('medium')}
+              onClick={() => setCurrentAIDifficulty('medium')}
             >
               <span className="difficulty-emoji">😐</span>
               <span className="difficulty-name">Moyen</span>
@@ -587,7 +633,7 @@ const Game = ({ settings }) => {
             </button>
             <button 
               className={`difficulty-option ${currentAIDifficulty === 'hard' ? 'selected' : ''}`}
-              onClick={() => setAIDifficulty('hard')}
+              onClick={() => setCurrentAIDifficulty('hard')}
             >
               <span className="difficulty-emoji">😈</span>
               <span className="difficulty-name">Difficile</span>
@@ -703,6 +749,7 @@ const Game = ({ settings }) => {
               validMoves={gamePhase === 'move_pawn' ? validMoves : validEPCMoves}
               onCellClick={handleCellClick}
               playerColors={playerColors}
+              getColorName={getColorName}
               gamePhase={gamePhase}
               lastPawnPosition={lastPawnPosition}
               lastMoveDest={lastPawnDestination}
