@@ -24,7 +24,8 @@ class GameEngine:
             difficulty (str): 'easy', 'medium', or 'hard'
         """
         self.ai_difficulty = difficulty
-        self.ai = AIFactory.create_ai(difficulty, 'black')
+        color1, color2 = self.get_color_pair()
+        self.ai = AIFactory.create_ai(difficulty, color2)
         print(f"[GameEngine] AI difficulty changed to {difficulty}")
         
     def get_ai_difficulty(self):
@@ -232,7 +233,8 @@ class GameEngine:
         piece.position = (end_row, end_col)
         self.board[end_row][end_col].append(piece)
         # Changer de joueur
-        self.current_player = 'black' if self.current_player == 'white' else 'white'
+        color1, color2 = self.get_color_pair()
+        self.current_player = color2 if self.current_player == color1 else color1
         return True, captured
 
     def get_valid_stack_moves(self, src_x, src_y):
@@ -364,7 +366,8 @@ class GameEngine:
         self.board[start_x][start_y].remove(piece)
         piece.position = (end_x, end_y)
         self.board[end_x][end_y].append(piece)
-        self.current_player = 'black' if self.current_player == 'white' else 'white'
+        color1, color2 = self.get_color_pair()
+        self.current_player = color1 if self.current_player == color2 else color2
         return True, None
 
     def attack_pion(self, start_x, start_y, end_x, end_y, captured_dest=None):
@@ -416,7 +419,8 @@ class GameEngine:
         self.board[start_x][start_y].remove(piece)
         piece.position = (end_x, end_y)
         self.board[end_x][end_y].append(piece)
-        self.current_player = 'black' if self.current_player == 'white' else 'white'
+        color1, color2 = self.get_color_pair()
+        self.current_player = color2 if self.current_player == color1 else color1
         return True, captured, []
 
     def can_stack(self, color):
@@ -462,6 +466,7 @@ class GameEngine:
         white_by_size = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
         black_by_size = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
         
+        color1, color2 = self.get_color_pair()
         for x in range(8):
             for y in range(8):
                 if self.board[x][y]:
@@ -472,10 +477,10 @@ class GameEngine:
                         # Count pawns on this building
                         for p in self.board[x][y]:
                             if hasattr(p, 'name') and p.name == 'Pawn':
-                                if p.color == 'white':
+                                if p.color == color1:
                                     white_building_pieces += 1
                                     white_by_size[square_count] += 1
-                                elif p.color == 'black':
+                                elif p.color == color2:
                                     black_building_pieces += 1
                                     black_by_size[square_count] += 1
         
@@ -486,16 +491,16 @@ class GameEngine:
         
         # First criterion: most pieces on buildings
         if white_building_pieces > black_building_pieces:
-            return 'white'
+            return color1
         elif black_building_pieces > white_building_pieces:
-            return 'black'
+            return color2
         
         # Tie: check by stack size (4, 3, 2, 1)
         for size in range(4, 0, -1):
             if white_by_size[size] > black_by_size[size]:
-                return 'white'
+                return color1
             elif black_by_size[size] > white_by_size[size]:
-                return 'black'
+                return color2
         
         return 'draw'
 

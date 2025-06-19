@@ -29,7 +29,8 @@ def get_board(colorPair: str = "black-white"):
 @app.post("/valid_moves")
 def get_valid_moves(data:dict):
     try:
-        game = GameEngine()
+        color_part = data.get('colorPair', 'black-white')
+        game = GameEngine(color_pair=color_part)
         board = data.get('board', None)
         current_player = data.get('currentPlayer', None)
         row = data['row']
@@ -47,7 +48,8 @@ def get_valid_moves(data:dict):
 @app.post("/move_pawn")
 async def make_move(data: dict):
     try:
-        game = GameEngine()
+        color_pair = data.get('colorPair', 'black-white')
+        game = GameEngine(color_pair=color_pair)
         board = data.get('board', None)
         current_player = data.get('currentPlayer', None)
         if board is not None:
@@ -94,7 +96,8 @@ def reset_game(request: Request):
 @app.post("/move_square")
 def move_square(data: dict):
     try:
-        game = GameEngine()
+        color_pair = data.get('colorPair', 'black-white')
+        game = GameEngine(color_pair=color_pair)
         board = data.get('board', None)
         current_player = data.get('currentPlayer', None)
         if board is not None:
@@ -115,7 +118,8 @@ def move_square(data: dict):
 @app.post("/attack_pion")
 def attack_pion_api(data: dict):
     try:
-        game = GameEngine()
+        color_pair = data.get('colorPair', 'black-white')
+        game = GameEngine(color_pair=color_pair)
         board = data.get('board', None)
         current_player = data.get('currentPlayer', None)
         if board is not None:
@@ -140,8 +144,9 @@ def attack_pion_api(data: dict):
 @app.post("/is_game_over")
 def is_game_over(data: dict = {}):
     # Utilise la méthode check_game_over existante
-    game = GameEngine()
     try:
+        color_pair = data.get('colorPair', 'black-white')
+        game = GameEngine(color_pair=color_pair)
         board = data.get('board', None)
         current_player = data.get('currentPlayer', None)
         if board is not None:
@@ -154,8 +159,10 @@ def is_game_over(data: dict = {}):
 
 @app.post("/ai_move")
 def ai_move(data: dict = {}):
-    game = GameEngine()
+    
     try:
+        color_pair = data.get('colorPair', 'black-white')
+        game = GameEngine(color_pair=color_pair)
         board = data.get('board', None)
         current_player = data.get('currentPlayer', None)
         if board is not None:

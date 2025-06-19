@@ -193,12 +193,6 @@ const Game = ({ settings }) => {
   // Mouvements valides pion
   const fetchValidMoves = async (row, col) => {
     try {
-      const params = new URLSearchParams({
-        mode: settings?.mode || 'local',
-        difficulty: settings?.difficulty || 'medium',
-        colorPair: settings?.colorPair || 'black-white',
-        ...getCustomColors()
-      });
       const response = await fetch(`http://localhost:8000/valid_moves`,{
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -206,7 +200,8 @@ const Game = ({ settings }) => {
           board: board,
           currentPlayer: playerColors[currentPlayer],
           row: row,
-          col: col
+          col: col,
+          colorPair: settings?.colorPair || 'black-white',
         })
       });
       if (!response.ok) throw new Error('Erreur réseau');
@@ -221,10 +216,6 @@ const Game = ({ settings }) => {
   // Mouvements valides EPC
   const fetchValidEPCMoves = async (row, col) => {
     try {
-      const params = new URLSearchParams({
-        colorPair: settings?.colorPair || 'black-white',
-        ...getCustomColors()
-      });
       const response = await fetch(`${API_BASE_URL}/valid_moves`,{
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -233,7 +224,7 @@ const Game = ({ settings }) => {
           currentPlayer: playerColors[currentPlayer],
           row: row,
           col: col,
-          params: params.toString()
+          colorPair: settings?.colorPair || 'black-white'
         })
       });
       if (!response.ok) throw new Error(`Erreur réseau: ${response.status}`);
@@ -322,7 +313,8 @@ const Game = ({ settings }) => {
           start_row: selectedPiece.row,
           start_col: selectedPiece.col,
           end_row: row,
-          end_col: col
+          end_col: col,
+          colorPair: settings?.colorPair || 'black-white'
         };
         const response = await fetch(`${API_BASE_URL}/attack_pion`, {
           method: 'POST',
@@ -364,7 +356,8 @@ const Game = ({ settings }) => {
             start_row: selectedPiece.row,
             start_col: selectedPiece.col,
             end_row: row,
-            end_col: col
+            end_col: col,
+            colorPair: settings?.colorPair || 'black-white'
           })
         });
         const result = await response.json();
@@ -398,7 +391,8 @@ const Game = ({ settings }) => {
           start_col: pendingCaptured.from.col,
           end_row: pendingCaptured.to.row,
           end_col: pendingCaptured.to.col,
-          captured_dest: [row, col]
+          captured_dest: [row, col],
+          colorPair: settings?.colorPair || 'black-white'
         })
       });
       const result = await response.json();
@@ -430,7 +424,8 @@ const Game = ({ settings }) => {
           src_row: selectedEPC.row,
           src_col: selectedEPC.col,
           dst_row: row,
-          dst_col: col
+          dst_col: col,
+          colorPair: settings?.colorPair || 'black-white'
         })
       });
       const result = await response.json();
@@ -560,7 +555,8 @@ const Game = ({ settings }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           board: board,
-          currentPlayer: playerColors[currentPlayer]
+          currentPlayer: playerColors[currentPlayer],
+          colorPair: settings?.colorPair || 'black-white',
         })    
       });
       if (!response.ok) throw new Error('Erreur réseau');
