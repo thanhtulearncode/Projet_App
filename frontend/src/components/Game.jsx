@@ -43,10 +43,15 @@ const Game = ({ settings }) => {
     }
     switch (settings?.colorPair) {
       case 'red-green':
-        return { player1: 'red', player2: 'green' };
-      case 'orange-blue':
-        return { player1: 'orange', player2: 'blue' };
-      
+        return { player1: 'red', player2: 'green' }
+      case 'gold-blue':
+        return { player1: 'gold', player2: 'blue' }
+      case 'purple-cyan':
+        return { player1: 'purple', player2: 'cyan'}
+      case 'brown-cream':
+        return { player1: 'brown', player2: 'cream'}
+      case 'navy-coral':
+        return { player1: 'navy', player2: 'coral'}
       default:
         return { player1: 'white', player2: 'black' };
     }

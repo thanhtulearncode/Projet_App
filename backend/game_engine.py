@@ -39,10 +39,16 @@ class GameEngine:
 
         if self.color_pair == 'red-green':
             color1, color2 = 'red', 'green'
-        elif self.color_pair == 'orange-blue':
-            color1, color2 = 'orange', 'blue'
+        elif self.color_pair == 'gold-blue':
+            color1, color2 = 'gold', 'blue'
+        elif self.color_pair == 'purple-cyan':
+            color1, color2 = 'purple','cyan'
+        elif self.color_pair == 'brown-cream':
+            color1, color2 ='brown','cream'
+        elif self.color_pair == 'navy-coral':
+            color1, color2 ='navy','coral'
         else:
-            color1, color2 = 'white', 'black'
+            color1, color2 ='white','black'
 
         for col in range(8):
             row = (col + 1) % 2
