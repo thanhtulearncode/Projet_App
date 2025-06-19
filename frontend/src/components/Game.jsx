@@ -58,7 +58,7 @@ const Game = ({ settings }) => {
   };
   const playerColors = getPlayerColors();
 
-  const handleAnimation = (lastPawnPosition, lastPawnDestination, lastEPCPosition, lastEPCDestination, capturedDestination=null) => {
+  const handleAnimation = (lastPawnPosition, lastPawnDestination, lastEPCPosition, lastEPCDestination) => {
     if (lastPawnPosition !== null) {
       setLastPawnPosition({row : lastPawnPosition[0],col: lastPawnPosition[1]});
     } else {
@@ -745,6 +745,7 @@ const Game = ({ settings }) => {
               validMoves={gamePhase === 'move_pawn' ? validMoves : validEPCMoves}
               onCellClick={handleCellClick}
               playerColors={playerColors}
+              getColorName={getColorName}
               gamePhase={gamePhase}
               lastPawnPosition={lastPawnPosition}
               lastMoveDest={lastPawnDestination}
