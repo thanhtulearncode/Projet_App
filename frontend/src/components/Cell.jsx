@@ -61,15 +61,15 @@ const Cell = ({
 
     return (
         <div 
-            className={cellClassName}
+            className={`${cellClassName} ${isFullscreen ? 'fullscreen' : ''}`}
             onClick={onClick}
             style={{
                 position: 'relative',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                width: isFullscreen ? '100%' : '64px',
-                height: isFullscreen ? '100%' : '64px',
+                //width: isFullscreen ? '100%' : '64px',
+                //height: isFullscreen ? '100%' : '64px',
             }}
         >
             {/* Affiche toutes les pièces de la pile avec positionnement relatif */}

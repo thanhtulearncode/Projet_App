@@ -91,7 +91,7 @@ const Game = ({ settings }) => {
   };
 
   useEffect(() => {
-    fetchBoard();
+    fetchBoard('move_pawn', 'player1');
     if (settings?.mode === 'ai') {
       fetchAIDifficulty();
     }
@@ -147,7 +147,7 @@ const Game = ({ settings }) => {
     }
   };
 
-  const fetchBoard = async () => {
+  const fetchBoard = async (gamePhase, currentPlayer) => {
     try {
       const params = new URLSearchParams({
         colorPair: settings.colorPair,
@@ -310,7 +310,7 @@ const Game = ({ settings }) => {
           setSelectedPiece(null);
           setValidMoves([]);
           setGamePhase('move_epc');
-          fetchBoard();
+          fetchBoard('move_epc', currentPlayer);
           handleAnimation(selectedPiece, { row, col }, null, null);
         }
       } catch (error) {
@@ -336,7 +336,7 @@ const Game = ({ settings }) => {
           setSelectedPiece(null);
           setValidMoves([]);
           setGamePhase('move_epc');
-          fetchBoard();
+          fetchBoard('move_epc', currentPlayer);
           handleAnimation(selectedPiece, { row, col }, null, null);
         } else {
           setMessage('Mouvement invalide');
@@ -367,7 +367,7 @@ const Game = ({ settings }) => {
         setPendingCaptured(null);
         setValidMoves([]);
         setGamePhase('move_epc');
-        fetchBoard();
+        fetchBoard('move_epc', currentPlayer);
         handleAnimation(pendingCaptured.from, pendingCaptured.to, null, null);
       } else {
         setMessage('Erreur lors de la capture');
@@ -398,7 +398,7 @@ const Game = ({ settings }) => {
         setValidEPCMoves([]);
         setCurrentPlayer(currentPlayer === 'player1' ? 'player2' : 'player1');
         setGamePhase('move_pawn');
-        fetchBoard();
+        fetchBoard('move_pawn', currentPlayer === 'player1' ? 'player2' : 'player1');
         handleAnimation(null, null, selectedEPC, { row, col });
         if (settings?.mode === 'ai') {
           handleAIPlay();
@@ -435,7 +435,7 @@ const Game = ({ settings }) => {
       const data = await response.json();
       if (data.success) { 
         setMessage(`L'IA ${getDifficultyName(data.ai_difficulty || currentAIDifficulty)} a joué en ${moveTime.toFixed(2)}s`);
-        fetchBoard();
+        fetchBoard('move_pawn', 'player1');
         setAIState(false);
         setCurrentPlayer('player1');
         setGamePhase('move_pawn');
@@ -473,7 +473,7 @@ const Game = ({ settings }) => {
         ...getCustomColors()
       });
       await fetch(`${API_BASE_URL}/reset?${params}`, { method: 'POST' });
-      fetchBoard();
+      fetchBoard('move_pawn', 'player1');
       setSelectedPiece(null);
       setValidMoves([]);
       setSelectedEPC(null);
