@@ -590,6 +590,33 @@ const Game = ({ settings }) => {
     );
   };
 
+  useEffect(() => {
+    // Créer la signature programmatiquement
+    const signature = document.createElement('div');
+    signature.textContent = 'Wall Street';
+    signature.style.position = 'fixed';
+    signature.style.bottom = '20px';
+    signature.style.left = '50%';
+    signature.style.transform = 'translateX(-50%)';
+    signature.style.fontFamily = 'Playfair Display, serif';
+    signature.style.fontStyle = 'italic';
+    signature.style.fontSize = '1.2rem';
+    signature.style.color = 'rgba(255, 215, 0, 0.4)';
+    signature.style.textShadow = '0 2px 10px rgba(0, 0, 0, 0.3)';
+    signature.style.letterSpacing = '2px';
+    signature.style.pointerEvents = 'none';
+    signature.style.zIndex = '1000';
+    signature.style.whiteSpace = 'nowrap';
+    
+    // Ajouter au document
+    document.body.appendChild(signature);
+    
+    // Nettoyage lors du démontage du composant
+    return () => {
+      document.body.removeChild(signature);
+    };
+  }, []);
+
   return (
     <div className="game">
       {/* Fond avec effet radial */}
@@ -692,6 +719,9 @@ const Game = ({ settings }) => {
 
       {/* Sélecteur de difficulté IA */}
       <AIDifficultySelector />
+
+      {/* Signature Wall Street élégante */}
+      <div className="wall-street-signature">Wall Street</div>
     </div>
   );
 
