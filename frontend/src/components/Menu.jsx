@@ -72,7 +72,10 @@ function Menu({ onStartGame, musicEnabled, setMusicEnabled, musicVolume, setMusi
     switch (selectedColorPair) {
       case 'black-white': return 'Noir vs Blanc';
       case 'red-green': return 'Rouge vs Vert';
-      case 'orange-blue': return 'Orange vs Bleu';
+      case 'gold-blue': return 'gold vs Bleu';
+      case 'purple-cyan': return 'purple vs cyan'
+      case 'brown-cream': return 'brown-cream'
+      case 'navy-coral': return 'navy-coral'
       default: return 'Couleurs personnalisées';
     }
   };
