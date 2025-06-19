@@ -24,7 +24,8 @@ class GameEngine:
             difficulty (str): 'easy', 'medium', or 'hard'
         """
         self.ai_difficulty = difficulty
-        self.ai = AIFactory.create_ai(difficulty, 'black')
+        color1, color2 = self.get_color_pair()
+        self.ai = AIFactory.create_ai(difficulty, color2)
         print(f"[GameEngine] AI difficulty changed to {difficulty}")
         
     def get_ai_difficulty(self):
@@ -100,7 +101,34 @@ class GameEngine:
                             "position": piece.position
                         })
         return board
+    
+    def set_state(self, board_state):
+        self.board = [[[] for _ in range(8)] for _ in range(8)]
+        for row in range(8):
+            for col in range(8):
+                for piece_data in board_state[row][col]:
+                    if piece_data["type"] == "Square":
+                        piece = Square(piece_data["color"], tuple(piece_data["position"]))
+                    elif piece_data["type"] == "Pawn":
+                        piece = Pawn(piece_data["color"], tuple(piece_data["position"]))
+                    else:
+                        continue  # Ignore unknown types
+                    self.board[row][col].append(piece)
+                    
+    def set_current_player(self, color):
+        """Permet de changer le joueur courant"""
+        pair_colors = self.color_pair.split('-')
+        if color in pair_colors:
+            self.current_player = color
+        else:
+            raise ValueError("Invalid player color. Must be 'white' or 'black'.")
 
+    def update(self, board_state, current_player):
+        """Met à jour l'état du jeu avec un nouvel état de plateau et le joueur courant"""
+        self.set_state(board_state)
+        self.set_current_player(current_player)
+        self.game_over = False
+    
     def get_valid_moves(self, x, y):
         valid_moves = []
         if self.board[x][y]:
@@ -205,7 +233,8 @@ class GameEngine:
         piece.position = (end_row, end_col)
         self.board[end_row][end_col].append(piece)
         # Changer de joueur
-        self.current_player = 'black' if self.current_player == 'white' else 'white'
+        color1, color2 = self.get_color_pair()
+        self.current_player = color2 if self.current_player == color1 else color1
         return True, captured
 
     def get_valid_stack_moves(self, src_x, src_y):
@@ -337,7 +366,8 @@ class GameEngine:
         self.board[start_x][start_y].remove(piece)
         piece.position = (end_x, end_y)
         self.board[end_x][end_y].append(piece)
-        self.current_player = 'black' if self.current_player == 'white' else 'white'
+        color1, color2 = self.get_color_pair()
+        self.current_player = color1 if self.current_player == color2 else color2
         return True, None
 
     def attack_pion(self, start_x, start_y, end_x, end_y, captured_dest=None):
@@ -389,7 +419,8 @@ class GameEngine:
         self.board[start_x][start_y].remove(piece)
         piece.position = (end_x, end_y)
         self.board[end_x][end_y].append(piece)
-        self.current_player = 'black' if self.current_player == 'white' else 'white'
+        color1, color2 = self.get_color_pair()
+        self.current_player = color2 if self.current_player == color1 else color1
         return True, captured, []
 
     def can_stack(self, color):
@@ -424,52 +455,41 @@ class GameEngine:
 
     def get_winner(self):
         """Détermine le gagnant selon les règles:
-        1. Player with most pieces on buildings (stacks)
-        2. In case of tie: player with most pieces on 4-piece CPEs, then 3-piece, etc."""
-        
-        # Count pieces on buildings (stacks) for each player
-        white_building_pieces = 0
-        black_building_pieces = 0
-        
-        # Dictionary to count pieces by stack size
-        white_by_size = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
-        black_by_size = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
-        
+            1. Player with most pieces on 5-piece buildings (stacks)
+            2. Then 4, 3, 2, 1
+            3. If all tied, declare draw
+            """
+        # Count pieces on buildings (stacks) for each player by stack size
+        color1, color2 = self.get_color_pair()
+        by_size = {
+            color1: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0},
+            color2: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+        }
+
         for x in range(8):
             for y in range(8):
                 if self.board[x][y]:
                     # Count squares in this stack
                     square_count = sum(1 for p in self.board[x][y] if hasattr(p, 'name') and p.name == 'Square')
-                    
                     if square_count > 0:  # This is a building/stack
                         # Count pawns on this building
                         for p in self.board[x][y]:
                             if hasattr(p, 'name') and p.name == 'Pawn':
-                                if p.color == 'white':
-                                    white_building_pieces += 1
-                                    white_by_size[square_count] += 1
-                                elif p.color == 'black':
-                                    black_building_pieces += 1
-                                    black_by_size[square_count] += 1
-        
-        print(f"White pieces on buildings: {white_building_pieces}")
-        print(f"Black pieces on buildings: {black_building_pieces}")
-        print(f"White by stack size: {white_by_size}")
-        print(f"Black by stack size: {black_by_size}")
-        
-        # First criterion: most pieces on buildings
-        if white_building_pieces > black_building_pieces:
-            return 'white'
-        elif black_building_pieces > white_building_pieces:
-            return 'black'
-        
-        # Tie: check by stack size (4, 3, 2, 1)
-        for size in range(4, 0, -1):
-            if white_by_size[size] > black_by_size[size]:
-                return 'white'
-            elif black_by_size[size] > white_by_size[size]:
-                return 'black'
-        
+                                if p.color == color1:
+                                    by_size[color1][square_count] += 1
+                                elif p.color == color2:
+                                    by_size[color2][square_count] += 1
+
+        print(f"By stack size: {by_size}")
+
+        # Check from 5 down to 1
+        for size in range(5, 0, -1):
+            if by_size[color1][size] > by_size[color2][size]:
+                return color1
+            elif by_size[color2][size] > by_size[color1][size]:
+                return color2
+
+        # If all tied, declare draw
         return 'draw'
 
     def get_valid_epc_moves(self, row, col):
