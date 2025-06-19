@@ -139,11 +139,19 @@ def is_game_over():
     return {"game_over": False, "winner": None}
 
 @app.post("/ai_move")
-def ai_move(data: dict = {}):
+def ai_move(data: dict = {}, colorPair: str = "black-white"):
+    global game
+    # Re-initialize the game if the colorPair is different
+    if hasattr(game, 'color_pair') and game.color_pair != colorPair:
+        game = GameEngine(color_pair=colorPair)
     try:
         print(f"[AI] {game.ai.difficulty} AI is thinking...")
         try:
             move = game.ai.make_decision(game)
+            print("aaaaa")
+            print(game.ai.depth)
+
+            print(f"[AI] Move decision: {move}")
         except Exception as e:
             print("Exception in make_decision:", e)
             import traceback
@@ -190,11 +198,11 @@ def ai_move(data: dict = {}):
                 print(f"Action inconnue: {action_type}")
                 print(f"Action: {action_type}, Start: {start_pos}, End: {end_pos}, Success: {success}")
                 success = False
-            print(success)
-            print("qqqqqqqqqqqqqqqqqqqqqqqqqq")
+            #print(success)
+            #print("qqqqqqqqqqqqqqqqqqqqqqqqqq")
             if not success:
                 return {"success": False, "message": "Échec du coup AI"}
-        print("tttttttttttttttttttttttttttt")
+        #print("tttttttttttttttttttttttttttt")
         return {
             "success": success,
             "current_player": game.current_player,

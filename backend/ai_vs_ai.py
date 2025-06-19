@@ -14,7 +14,9 @@ from statistics import mean, median
 sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
 
 from game_engine import GameEngine
-from ia import AIFactory, EasyAI, MediumAI, HardAI
+from ia import AIFactory, EasyAI, MediumAI, HardAI, MinMaxAI
+
+print("[INFO] [MINIMAX EVAL] lines will show evaluation scores at each minimax leaf during AI decision-making.")
 
 class AIVsAITester:
     def __init__(self, white_ai_difficulty='easy', black_ai_difficulty='medium', max_turns=100):
@@ -70,6 +72,10 @@ class AIVsAITester:
     
     def make_ai_move(self, ai):
         """Make a move for the given AI and track execution time"""
+        # Print evaluation score before move if AI is MinMaxAI
+        if hasattr(ai, 'evaluate'):
+            score = ai.evaluate(self.game)
+            print(f"[EVAL] {ai.color} ({getattr(ai, 'difficulty', 'AI')}) evaluation: {score}")
         try:
             start_time = time.time()
             move = ai.make_decision(self.game)

@@ -1,176 +1,423 @@
 import copy
 import random
 
+import copy
+import random
+import numpy as np
+
 class MinMaxAI:
     def __init__(self, color, depth=3):
         self.color = color
         self.depth = depth
-
-    def evaluate(self, game_engine):
-        score = 0
+        self.transposition_table = {}
+        
+    def zobrist_hash(self, game_engine):
+        """Crée un hash unique pour l'état du jeu"""
+        board_hash = 0
         for row in range(8):
             for col in range(8):
-                for i, piece in enumerate(game_engine.board[row][col]):
-                    if hasattr(piece, 'name') and piece.name == 'Pawn':
-                        value = 10 + i  
-                        if piece.color == self.color:
-                            score += value
-                        else:
-                            score -= value
+                stack = game_engine.board[row][col]
+                if stack:
+                    top_piece = stack[-1]
+                    piece_type = getattr(top_piece, 'name', type(top_piece).__name__)
+                    piece_color = getattr(top_piece, 'color', 'None')
+                    piece_hash = hash(f"{row},{col},{piece_type},{piece_color},{len(stack)}")
+                    board_hash ^= piece_hash
+        return board_hash
+
+    def get_max_height(self, game_engine):
+        """Trouve la hauteur maximale des piles sur le plateau"""
+        max_height = 0
+        for row in range(8):
+            for col in range(8):
+                stack = game_engine.board[row][col]
+                if stack and len(stack) > max_height:
+                    max_height = len(stack)
+        return max_height
+
+    def get_position_value(self, row, col):
+        """Retourne la valeur positionnelle d'une case"""
+        # Centre plus important que les bords
+        center_value = [
+            [1, 1, 2, 2, 2, 2, 1, 1],
+            [1, 2, 3, 3, 3, 3, 2, 1],
+            [2, 3, 4, 4, 4, 4, 3, 2],
+            [2, 3, 4, 5, 5, 4, 3, 2],
+            [2, 3, 4, 5, 5, 4, 3, 2],
+            [2, 3, 4, 4, 4, 4, 3, 2],
+            [1, 2, 3, 3, 3, 3, 2, 1],
+            [1, 1, 2, 2, 2, 2, 1, 1]
+        ]
+        return center_value[row][col] * 3
+
+    def evaluate(self, game_engine):
+        """Fonction d'évaluation sophistiquée avec plusieurs facteurs"""
+        score = 0
+        max_height = self.get_max_height(game_engine)
+        
+        for row in range(8):
+            for col in range(8):
+                stack = game_engine.board[row][col]
+                if not stack:
+                    continue
+                    
+                height = len(stack)
+                top_piece = stack[-1]
+                
+                # 1. Contrôle des piles de hauteur maximale
+                if height == max_height and top_piece.name == 'Pawn':
+                    if top_piece.color == self.color:
+                        score += 50  # Bonus important
+                    else:
+                        score -= 50
+                        
+                # 2. Valeur positionnelle
+                position_value = self.get_position_value(row, col)
+                if top_piece.name == 'Pawn' and top_piece.color == self.color:
+                    moves = game_engine.get_pawn_moves(top_piece, row, col)
+                    # Bonus pour les mouvements vers le centre
+                    center_bonus = sum(self.get_position_value(m[0], m[1]) for m in moves)
+                    score += len(moves) * 2 + center_bonus * 0.5
+                    
+                # 3. Mobilité
+                if top_piece.name == 'Pawn' and top_piece.color == self.color:
+                    moves = game_engine.get_pawn_moves(top_piece, row, col)
+                    score += len(moves) * 2
+                    
+                # 4. Menaces sur les pions adverses
+                if top_piece.name == 'Pawn' and top_piece.color != self.color:
+                    for dr, dc in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+                        r, c = row + dr, col + dc
+                        if 0 <= r < 8 and 0 <= c < 8:
+                            adj_stack = game_engine.board[r][c]
+                            if adj_stack and adj_stack[-1].name == 'Pawn' and adj_stack[-1].color == self.color:
+                                score += 10  # Bonus pour la menace
+                
+                # 5. Stratégie spécifique: éviter les piles de hauteur 5 trop tôt
+                if height == 5 and top_piece.name == 'Square':
+                    if any(p.name == 'Pawn' and p.color == self.color for p in stack):
+                        score -= 30  # Décourager de bloquer ses propres pions
+                
+                # 6. Pions isolés (fin de partie)
+                if top_piece.name == 'Pawn' and top_piece.color == self.color:
+                    if self.is_isolated(game_engine, row, col):
+                        score -= 15
+
         return score
 
+    def is_isolated(self, game_engine, row, col):
+        """Vérifie si un pion est isolé (version optimisée)"""
+        directions = [(0,1), (1,0), (0,-1), (-1,0), (1,1), (1,-1), (-1,1), (-1,-1)]
+        for dr, dc in directions:
+            r, c = row + dr, col + dc
+            if 0 <= r < 8 and 0 <= c < 8:
+                stack = game_engine.board[r][c]
+                if stack and stack[-1].name == 'Pawn' and stack[-1].color == self.color:
+                    return False
+        return True
 
     def get_all_moves(self, game_engine, color):
+        """Retourne les coups ordonnés par potentiel"""
         moves = []
         for row in range(8):
             for col in range(8):
                 if game_engine.board[row][col]:
                     top_piece = game_engine.board[row][col][-1]
-                    if hasattr(top_piece, 'name') and top_piece.name == 'Pawn' and top_piece.color == color:
-                        for move in game_engine.get_pawn_moves(top_piece, row, col):
-                            moves.append(("move_pion", (row, col), (move[0], move[1])))
-                    elif top_piece.name != "Pawn":
+                    # Priorité aux captures
+                    if top_piece.name == 'Pawn' and top_piece.color == color:
+                        print(f"[DEBUG] Considering pawn at ({row},{col}) for moves")
+                        pawn_moves = game_engine.get_pawn_moves(top_piece, row, col)
+                        print(f"[DEBUG] Valid pawn moves from ({row},{col}): {pawn_moves}")
+                        for move in pawn_moves:
+                            # Vérifie si c'est une capture
+                            target_stack = game_engine.board[move[0]][move[1]]
+                            is_capture = target_stack and target_stack[-1].name == 'Pawn' and target_stack[-1].color != color
+                            moves.append(("move_pion", (row, col), (move[0], move[1]), is_capture))
+                    # Priorité aux empilages qui créent des piles hautes
+                    elif top_piece.name == 'Square':
                         valid_moves = game_engine.get_valid_stack_moves(row, col)
-                        if valid_moves:
-                            for end_pos in valid_moves:
-                                moves.append(("stack_pieces", (row, col), end_pos))
-        return moves
-
+                        for end_pos in valid_moves:
+                            new_height = len(game_engine.board[row][col]) + len(game_engine.board[end_pos[0]][end_pos[1]])
+                            moves.append(("stack_pieces", (row, col), end_pos, new_height))
+        # Trie les coups par importance (captures et empilages hauts d'abord)
+        moves.sort(key=lambda x: (
+            -1 if x[0] == "move_pion" and x[3] else  # Captures d'abord
+            -x[3] if x[0] == "stack_pieces" else 0,  # Empilages hauts d'abord
+            random.random()  # Random pour varier l'ordre des coups équivalents
+        ), reverse=True)
+        return [(m[0], m[1], m[2]) for m in moves]  # Retourne sans le score
 
     def is_valid_combo(self, pawn_move, stack_move):
-        # pawn_move: ("move_pion", (row, col), (to_row, to_col))
-        # stack_move: ("stack_pieces", (row, col), (to_row, to_col))
+        """Vérifie si une combinaison de coups est valide"""
         return (
-            pawn_move[2][0] == stack_move[1][0] and  # Pawn moves to the square where stack move starts
+            pawn_move[2][0] == stack_move[1][0] and
             pawn_move[2][1] == stack_move[1][1]
         )
 
+    def get_all_move_pairs(self, game_engine, color):
+        """Optimized: Retourne toutes les paires valides (move_pion, stack_pieces) pour un tour, en générant les stack moves après le move_pion, en minimisant les clones et scans."""
+        pawn_moves = []
+        # Collect all pawn moves efficiently
+        for row in range(8):
+            for col in range(8):
+                if game_engine.board[row][col]:
+                    top_piece = game_engine.board[row][col][-1]
+                    if top_piece.name == 'Pawn' and top_piece.color == color:
+                        for move in game_engine.get_pawn_moves(top_piece, row, col):
+                            pawn_moves.append(('move_pion', (row, col), move))
+        pairs = []
+        for pawn in pawn_moves:
+            temp_game = game_engine.clone()
+            self.apply_move(temp_game, pawn)
+            found_valid = False
+            # Only check stack moves for cells that do not have a pawn on top and are not the pawn's new cell
+            for row in range(8):
+                for col in range(8):
+                    if temp_game.board[row][col]:
+                        top_piece = temp_game.board[row][col][-1]
+                        if top_piece.name == 'Square' and (row, col) != pawn[2]:
+                            for end_pos in temp_game.get_valid_stack_moves(row, col):
+                                pairs.append([pawn, ('stack_pieces', (row, col), end_pos)])
+                                found_valid = True
+            if not found_valid:
+                pairs.append([pawn])
+        # Also allow stack-only moves if no pawn moves are possible
+        if not pairs:
+            for row in range(8):
+                for col in range(8):
+                    if game_engine.board[row][col]:
+                        top_piece = game_engine.board[row][col][-1]
+                        if top_piece.name == 'Square':
+                            for end_pos in game_engine.get_valid_stack_moves(row, col):
+                                pairs.append([('stack_pieces', (row, col), end_pos)])
+        return pairs
+
     def get_best_move(self, game_engine):
-        all_moves = self.get_all_moves(game_engine, self.color)
-        pawn_moves = [m for m in all_moves if m[0] == 'move_pion']
-        stack_moves = [m for m in all_moves if m[0] == 'stack_pieces']
+        # Get all possible actions
+        pawn_moves = [m for m in self.get_all_moves(game_engine, self.color) if m[0] == 'move_pion']
+        stack_moves = [m for m in self.get_all_moves(game_engine, self.color) if m[0] == 'stack_pieces']
 
-        best_eval = float('-inf')
-        best_combo = None
+        best_score = float('-inf')
+        best_pair = None
 
-        print(f"[AI] Calculating best combo for {self.color} (depth {self.depth})")
-
+        # Try all pairs and score them
         for pawn in pawn_moves:
             for stack in stack_moves:
                 if self.is_valid_combo(pawn, stack):
                     temp_game = game_engine.clone()
                     temp_game.move_piece(pawn[1][0], pawn[1][1], pawn[2][0], pawn[2][1])
-                    valid_stack_moves = temp_game.get_valid_stack_moves(stack[1][0], stack[1][1])
-                    
-                    if stack[2] in valid_stack_moves:
+                    if temp_game.get_valid_stack_moves(stack[1][0], stack[1][1]):
                         temp_game.stack_pieces(stack[1][0], stack[1][1], stack[2][0], stack[2][1])
-                        temp_game.current_player = 'white' if self.color == 'black' else 'black'
+                        score = self.evaluate(temp_game)
+                        print(f"[AI DEBUG] Evaluating pair: {pawn}, {stack} -> score: {score}")
+                        if score > best_score:
+                            best_score = score
+                            best_pair = (pawn, stack)
 
-                        eval_score, _ = self.minimax(
-                            temp_game,
-                            self.depth - 1,
-                            maximizing_player=False,
-                            alpha=float('-inf'),
-                            beta=float('inf')
-                        )
-                        print(f"[DEBUG] Combo: {pawn}, {stack} => Eval = {eval_score}")
-                        
-                        if eval_score > best_eval:
-                            best_eval = eval_score
-                            best_combo = (pawn, stack)
+        # If no valid pair found, try all pairs and pick the first that is valid in sequence
+        if not best_pair and pawn_moves and stack_moves:
+            for pawn in pawn_moves:
+                temp_game = game_engine.clone()
+                temp_game.move_piece(pawn[1][0], pawn[1][1], pawn[2][0], pawn[2][1])
+                for stack in stack_moves:
+                    valid_stacks = temp_game.get_valid_stack_moves(stack[1][0], stack[1][1])
+                    if stack[2] in valid_stacks:
+                        best_pair = (pawn, stack)
+                        break
+                if best_pair:
+                    break
 
-        if best_combo:
-            print(f"[AI] Best combo: {best_combo} with eval = {best_eval}")
-            return [best_combo[0], best_combo[1]]
+        # If still not possible, raise or skip the turn
+        if not best_pair:
+            raise Exception("No valid move_pion and stack_pieces pair found!")
+
+        return [best_pair[0], best_pair[1]]
+
+    def minimax_search(self, game_engine, depth):
+        """Effectue une recherche MinMax à une profondeur spécifique"""
+        # Utilise la table de transposition pour accélérer la recherche
+        game_hash = self.zobrist_hash(game_engine)
+        if game_hash in self.transposition_table:
+            entry = self.transposition_table[game_hash]
+            if entry['depth'] >= depth:
+                return entry['value'], entry['best_move']
+        
+        # Vérifie si c'est une fin de partie
+        if self.is_endgame(game_engine):
+            eval_score, best_move = self.endgame_strategy(game_engine)
         else:
-            # Fallback: use RandomAI logic to get a random valid pair
-            print("[AI] No valid combo found, fallback to RandomAI")
-            random_ai = RandomAI(self.color)
-            random_move = random_ai.make_decision(game_engine)
-            if random_move is None:
-                print("[ERROR] No valid moves found in MinimaxAI")
-                # Try to find any valid move, even if it's not optimal
-                for i in range(8):
-                    for j in range(8):
-                        if game_engine.board[i][j]:
-                            piece = game_engine.board[i][j][-1]
-                            if hasattr(piece, 'name') and piece.name == 'Pawn' and piece.color == self.color:
-                                valid_moves = game_engine.get_pawn_moves(piece, i, j)
-                                if valid_moves:
-                                    move = ('move_pion', (i, j), valid_moves[0])
-                                    print(f"[AI] Emergency fallback move: {move}")
-                                    return [move]
-                return None
-            return random_move
+            eval_score, best_move = self.minimax(
+                game_engine.clone(), 
+                depth, 
+                True, 
+                float('-inf'), 
+                float('inf')
+            )
+        
+        # Stocke le résultat dans la table de transposition
+        self.transposition_table[game_hash] = {
+            'depth': depth,
+            'value': eval_score,
+            'best_move': best_move
+        }
+        
+        return eval_score, best_move
 
+    def is_endgame(self, game_engine):
+        """Détermine si c'est une fin de partie"""
+        pawn_count = 0
+        for row in range(8):
+            for col in range(8):
+                stack = game_engine.board[row][col]
+                if stack and stack[-1].name == 'Pawn':
+                    pawn_count += 1
+        
+        # Fin de jeu quand il y a peu de pions ou quand les piles sont presque toutes à hauteur max
+        return pawn_count <= 4 or self.get_max_height(game_engine) >= 4
 
-    def minimax(self, game, depth, maximizing_player, alpha=float('-inf'), beta=float('inf')):
-        if depth == 0 or game.game_over:
+    def endgame_strategy(self, game_engine):
+        best_combo = None
+        best_score = float('-inf')
+        max_height = self.get_max_height(game_engine)
+        pawn_moves = [m for m in self.get_all_moves(game_engine, self.color) if m[0] == 'move_pion']
+        stack_moves = [m for m in self.get_all_moves(game_engine, self.color) if m[0] == 'stack_pieces']
+        print("[DEBUG] pawn_moves:", pawn_moves)
+        print("[DEBUG] stack_moves:", stack_moves)
+        for pawn in pawn_moves:
+            for stack in stack_moves:
+                if self.is_valid_combo(pawn, stack):
+                    temp_game = game_engine.clone()
+                    temp_game.move_piece(pawn[1][0], pawn[1][1], pawn[2][0], pawn[2][1])
+                    if temp_game.get_valid_stack_moves(stack[1][0], stack[1][1]):
+                        temp_game.stack_pieces(stack[1][0], stack[1][1], stack[2][0], stack[2][1])
+                        score = self.endgame_evaluate(temp_game, max_height)
+                        if score > best_score:
+                            best_score = score
+                            best_combo = (pawn, stack)
+        if best_combo:
+            return best_score, best_combo
+        move_pion = next((m for m in pawn_moves), None)
+        stack_piece = next((s for s in stack_moves), None)
+        if move_pion and stack_piece:
+            return 0, (move_pion, stack_piece)
+        return 0, None  # Aucun coup possible
+
+    def endgame_evaluate(self, game_engine, max_height):
+        """Évaluation optimisée pour la fin de partie"""
+        score = 0
+        current_max_height = self.get_max_height(game_engine)
+        
+        for row in range(8):
+            for col in range(8):
+                stack = game_engine.board[row][col]
+                if not stack:
+                    continue
+                    
+                height = len(stack)
+                top_piece = stack[-1]
+                
+                # Focus exclusif sur les piles maximales
+                if height == current_max_height and top_piece.name == 'Pawn':
+                    if top_piece.color == self.color:
+                        score += 100
+                    else:
+                        score -= 100
+                
+                # Bonus supplémentaire si c'est la pile la plus haute
+                if height == max_height and top_piece.name == 'Pawn' and top_piece.color == self.color:
+                    score += 50
+                
+                # Pénalité pour les pions isolés
+                if top_piece.name == 'Pawn' and top_piece.color == self.color and self.is_isolated(game_engine, row, col):
+                    score -= 30
+        
+        return score
+
+    def minimax(self, game, depth, maximizing_player, alpha, beta):
+        """Algorithme MinMax avec élagage alpha-bêta et tables de transposition, utilisant des paires de coups"""
+        # Utilise la table de transposition pour accélérer la recherche
+        game_hash = self.zobrist_hash(game)
+        if game_hash in self.transposition_table:
+            entry = self.transposition_table[game_hash]
+            if entry['depth'] >= depth:
+                if entry['maximizing'] == maximizing_player:
+                    return entry['value'], entry['best_move']
+        # Condition d'arrêt : profondeur atteinte ou fin de partie
+        if depth == 0 or game.check_game_over():
             eval_score = self.evaluate(game)
-            print(f"[DEBUG] Eval at depth 0 (or terminal): {eval_score}")
+            print(f"[MINIMAX EVAL] depth={depth}, maximizing={maximizing_player}, score={eval_score}")
             return eval_score, None
-
-        valid_moves = self.get_all_moves(game, game.current_player)
-
-        if not valid_moves:
-            print(f"[DEBUG] No valid moves for {game.current_player}")
-            return self.evaluate(game), None
-
-        best_move = None
-
         if maximizing_player:
             max_eval = float('-inf')
-            for move in valid_moves:
+            best_move = None
+            valid_move_pairs = self.get_all_move_pairs(game, self.color)
+            for move_pair in valid_move_pairs:
                 new_game = game.clone()
-                if move[0] == 'move_pion':
-                    new_game.move_piece(move[1][0], move[1][1], move[2][0], move[2][1])
-                elif move[0] == 'stack_pieces':
-                    new_game.stack_pieces(move[1][0], move[1][1], move[2][0], move[2][1])
-                new_game.current_player = 'white' if new_game.current_player == 'black' else 'black'
-
+                for move in move_pair:
+                    self.apply_move(new_game, move)
+                new_game.current_player = 'white' if game.current_player == 'black' else 'black'
                 eval_score, _ = self.minimax(new_game, depth - 1, False, alpha, beta)
-                print(f"[DEBUG] Max: Trying move {move}, Eval = {eval_score}, Alpha = {alpha}, Beta = {beta}")
-
                 if eval_score > max_eval:
                     max_eval = eval_score
-                    best_move = move
+                    best_move = move_pair
                 alpha = max(alpha, eval_score)
-
                 if beta <= alpha:
-                    print(f"[DEBUG] Max: Pruning branch at move {move} with Alpha = {alpha}, Beta = {beta}")
-                    break
-
-            print(f"[DEBUG] Max: Chose move {best_move} with score {max_eval}")
+                    break  # Élagage beta
+            self.transposition_table[game_hash] = {
+                'depth': depth,
+                'value': max_eval,
+                'best_move': best_move,
+                'maximizing': maximizing_player
+            }
             return max_eval, best_move
-
-        else:
+        else:  # minimizing_player
             min_eval = float('inf')
-            for move in valid_moves:
+            best_move = None
+            valid_move_pairs = self.get_all_move_pairs(game, self.color)
+            for move_pair in valid_move_pairs:
                 new_game = game.clone()
-                if move[0] == 'move_pion':
-                    new_game.move_piece(move[1][0], move[1][1], move[2][0], move[2][1])
-                elif move[0] == 'stack_pieces':
-                    new_game.stack_pieces(move[1][0], move[1][1], move[2][0], move[2][1])
-                new_game.current_player = 'white' if new_game.current_player == 'black' else 'black'
-
+                for move in move_pair:
+                    self.apply_move(new_game, move)
+                new_game.current_player = 'white' if game.current_player == 'black' else 'black'
                 eval_score, _ = self.minimax(new_game, depth - 1, True, alpha, beta)
-                print(f"[DEBUG] Min: Trying move {move}, Eval = {eval_score}, Alpha = {alpha}, Beta = {beta}")
-
                 if eval_score < min_eval:
                     min_eval = eval_score
-                    best_move = move
+                    best_move = move_pair
                 beta = min(beta, eval_score)
-
                 if beta <= alpha:
-                    print(f"[DEBUG] Min: Pruning branch at move {move} with Alpha = {alpha}, Beta = {beta}")
-                    break
-
-            print(f"[DEBUG] Min: Chose move {best_move} with score {min_eval}")
+                    break  # Élagage alpha
+            self.transposition_table[game_hash] = {
+                'depth': depth,
+                'value': min_eval,
+                'best_move': best_move,
+                'maximizing': maximizing_player
+            }
             return min_eval, best_move
 
+    def apply_move(self, game, move):
+        """Applique un coup sur le jeu"""
+        action, start, end = move
+        if action == 'move_pion':
+            # Gérer spécifiquement les captures
+            target = game.board[end[0]][end[1]]
+            if target and target[-1].name == 'Pawn' and target[-1].color != self.color:
+                game.attack_pion(start[0], start[1], end[0], end[1])
+            else:
+                game.move_pion(start[0], start[1], end[0], end[1])
+        elif action == 'stack_pieces':
+            game.stack_pieces(start[0], start[1], end[0], end[1])
 
     def make_decision(self, game_engine):
-        return self.get_best_move(game_engine)
+        try:
+            score, move = self.minimax_search(game_engine, self.depth)
+            if isinstance(move, (list, tuple)):
+                return list(move)
+            return []
+        except Exception as e:
+            print("[MinMaxAI] Exception in minimax_search, falling back to RandomAI:", e)
+            random_ai = RandomAI(self.color)
+            move = random_ai.make_decision(game_engine)
+            return move if move else []
 
 
 class RandomAI:
@@ -370,7 +617,7 @@ class MediumAI(MinMaxAI):
     Uses MinMax algorithm with shallow depth (2) for basic strategy
     """
     def __init__(self, color):
-        super().__init__(color, depth=2)
+        super().__init__(color, depth=1)
         self.difficulty = "Medium"
         print(f"[AI] Initialized {self.difficulty} AI for {color} (depth: {self.depth})")
 
@@ -385,7 +632,7 @@ class HardAI(MinMaxAI):
     Uses MinMax algorithm with deep depth (4) for advanced strategy
     """
     def __init__(self, color):
-        super().__init__(color, depth=4)
+        super().__init__(color, depth=6)
         self.difficulty = "Hard"
         print(f"[AI] Initialized {self.difficulty} AI for {color} (depth: {self.depth})")
 
