@@ -5,6 +5,7 @@ from AI import GameAI
 from ia import AIFactory
 import random
 import os
+import time
 
 app = FastAPI()
 game = GameEngine()
@@ -77,6 +78,7 @@ def reset_game(request: Request):
     global game
     colorPair = "black-white"
     ai_difficulty = "medium"
+    ai_color = None
     try:
         data = request.query_params
         if 'colorPair' in data:
@@ -85,14 +87,16 @@ def reset_game(request: Request):
             ai_difficulty = data['ai_difficulty']
             if ai_difficulty not in ['easy', 'medium', 'hard']:
                 ai_difficulty = "medium"  # Default to medium if invalid
+        if 'ai_color' in data:
+            ai_color = data['ai_color']
     except Exception as e:
         raise HTTPException(status_code=400, detail="Invalid query parameters")
-    
-    game = GameEngine(color_pair=colorPair, ai_difficulty=ai_difficulty)
+    game = GameEngine(color_pair=colorPair, ai_difficulty=ai_difficulty, ai_color=ai_color)
     return {
         "status": "Game reset",
         "ai_difficulty": ai_difficulty,
-        "color_pair": colorPair
+        "color_pair": colorPair,
+        "ai_color": ai_color
     }
 
 @app.post("/move_square")
@@ -147,7 +151,8 @@ def ai_move(data: dict = {}, colorPair: str = "black-white"):
     try:
         print(f"[AI] {game.ai.difficulty} AI is thinking...")
         try:
-            move = game.ai.make_decision(game)
+            ai_game = game.clone()  # Clone once for AI search
+            move = game.ai.make_decision(ai_game)
             print("aaaaa")
             print(game.ai.depth)
 
@@ -188,6 +193,7 @@ def ai_move(data: dict = {}, colorPair: str = "black-white"):
                 move_position = start_pos
                 move_destination = end_pos
             elif action_type == 'stack_pieces':
+                time.sleep(5)
                 success = game.stack_pieces(start_pos[0], start_pos[1], end_pos[0], end_pos[1])
                 if not success:
                     print(f"Échec du mouvement de pile: {start_pos} -> {end_pos}")
