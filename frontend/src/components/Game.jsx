@@ -448,8 +448,12 @@ const Game = ({ settings }) => {
         setValidMoves([]);
         handleAnimation(data.pawnPosition, data.pawnDestination, data.EPCPosition, data.EPCDestination, data.capturedDestination);
       } else {
-        setMessage('L\'IA n\'a pas pu jouer');
+        setMessage("L'IA n'a pas pu jouer");
         setAIState(false);
+        const nextPlayer = currentPlayer === 'player1' ? 'player2' : 'player1';
+        setCurrentPlayer(nextPlayer);
+        setGamePhase('move_pawn');
+        fetchBoard('move_pawn', nextPlayer);
       }
     } catch (error) { 
       setMessage('Erreur lors du coup de l\'IA');
