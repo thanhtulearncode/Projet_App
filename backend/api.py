@@ -176,7 +176,7 @@ def ai_move(data: dict = {}):
         try:
             move = game.ai.make_decision(game)
             print("aaaaa")
-            print(game.ai.depth)
+            #print(game.ai.depth)
 
             print(f"[AI] Move decision: {move}")
         except Exception as e:
