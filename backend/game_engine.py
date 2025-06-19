@@ -187,12 +187,12 @@ class GameEngine:
         # Le nombre de cases max = nombre de pièces carrées sous le pion
         if long_range is None:
             long_range = sum(1 for p in self.board[x][y] if getattr(p, 'name', None) == 'Square')
-            print(f"[LOG] Long range for Pawn at ({x},{y}): {long_range}")
+            #print(f"[LOG] Long range for Pawn at ({x},{y}): {long_range}")
         directions = []
         for dx, dy in [(-1,0), (1,0), (0,-1), (0,1)]:  # haut, bas, gauche, droite
             nx, ny = x, y
             steps = 0
-            print(long_range)
+            #print(long_range)
             while steps < long_range:
                 nx += dx
                 ny += dy
@@ -213,7 +213,7 @@ class GameEngine:
                 # Sinon, on peut s'arrêter ici
                 directions.append((nx, ny))
                 steps += 1
-                print(steps)
+                #print(steps)
         return directions
 
     def move_piece(self, start_row, start_col, end_row, end_col):
@@ -448,7 +448,7 @@ class GameEngine:
                 if self.board[x][y]:
                     if self.board[x][y][-1].name == 'Square':
                         valid_moves = self.get_square_moves(self.board[x][y][-1], x, y)
-                        print(f"[AAAA] Valid moves for square at ({x},{y}): {valid_moves}")
+                        #print(f"[AAAA] Valid moves for square at ({x},{y}): {valid_moves}")
                         if valid_moves:
                             return False
         return True

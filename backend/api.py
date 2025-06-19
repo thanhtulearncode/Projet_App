@@ -175,6 +175,10 @@ def ai_move(data: dict = {}):
         print(f"[AI] {game.ai.difficulty} AI is thinking...")
         try:
             move = game.ai.make_decision(game)
+            print("aaaaa")
+            print(game.ai.depth)
+
+            print(f"[AI] Move decision: {move}")
         except Exception as e:
             print("Exception in make_decision:", e)
             import traceback
@@ -221,11 +225,11 @@ def ai_move(data: dict = {}):
                 print(f"Action inconnue: {action_type}")
                 print(f"Action: {action_type}, Start: {start_pos}, End: {end_pos}, Success: {success}")
                 success = False
-            print(success)
-            print("qqqqqqqqqqqqqqqqqqqqqqqqqq")
+            #print(success)
+            #print("qqqqqqqqqqqqqqqqqqqqqqqqqq")
             if not success:
                 return {"success": False, "message": "Échec du coup AI"}
-        print("tttttttttttttttttttttttttttt")
+        #print("tttttttttttttttttttttttttttt")
         return {
             "success": success,
             "current_player": game.current_player,
