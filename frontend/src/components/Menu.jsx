@@ -164,7 +164,7 @@ function Menu({ onStartGame, musicEnabled, setMusicEnabled, musicVolume, setMusi
             <div className="logo-building"></div>
           </div>
           <h1 className="game-title">WALL STREET</h1>
-          <div className="logo-tagline">Le jeu de stratégie financière</div>
+          <div className="logo-tagline">Le jeu de stratégie combinatoire abstrait</div>
         </div>
       </div>
       
