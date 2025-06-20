@@ -48,38 +48,43 @@ class MinMaxAI:
             [1, 2, 3, 3, 3, 3, 2, 1],
             [1, 1, 2, 2, 2, 2, 1, 1]
         ]
-        return center_value[row][col] * 3
+        return center_value[row][col] * 5
 
     def evaluate(self, game_engine):
         """Fonction d'évaluation sophistiquée avec plusieurs facteurs"""
-        score = 0
-        max_height = self.get_max_height(game_engine)
-        
+        score = 0    
         for row in range(8):
             for col in range(8):
                 stack = game_engine.board[row][col]
                 if not stack:
                     continue
-                height = len(stack)
+
                 top_piece = stack[-1]
+                height = len(stack) if top_piece.name == 'Square' else len(stack) - 1
                 # 1. Main win condition: pawns on high stacks
                 if top_piece.name == 'Pawn':
                     if height == 5:
-                        bonus = 100
+                        bonus = 150
                     elif height == 4:
-                        bonus = 40
+                        bonus = 100
                     elif height == 3:
-                        bonus = 20
+                        bonus = 60
                     elif height == 2:
-                        bonus = 10
+                        bonus = 40
                     else:
                         bonus = 0
+
                     if top_piece.color == self.color:
                         score += bonus
-                    elif top_piece.color == 'null':
-                        score += bonus // 2
+                    
                     else:
                         score -= bonus
+                # 2. Valeur positionnelle (centre plus important)
+                position_value = self.get_position_value(row, col)
+                if top_piece.name == 'Pawn' and top_piece.color == self.color:
+                    score += position_value
+                elif top_piece.name == 'Pawn':
+                    score -= position_value
                 # 2. Tactical/positional factors
                 # Mutual protection (adjacent friendly pawns)
                 if top_piece.name == 'Pawn' and top_piece.color == self.color:
@@ -135,6 +140,7 @@ class MinMaxAI:
                     score -= 1000
 
         return score
+
 
     def is_isolated(self, game_engine, row, col):
         """Vérifie si un pion est isolé (version optimisée)"""
@@ -276,58 +282,42 @@ class MinMaxAI:
 
     def is_endgame(self, game_engine):
         """Détermine si c'est une fin de partie"""
-        pawn_count = 0
-        for row in range(8):
-            for col in range(8):
-                stack = game_engine.board[row][col]
-                if stack and stack[-1].name == 'Pawn':
-                    pawn_count += 1
-        
-        # Fin de jeu quand il y a peu de pions ou quand les piles sont presque toutes à hauteur max
-        return pawn_count <= 4 or self.get_max_height(game_engine) >= 4
+        total_pieces = len(game_engine.pawns) + len(game_engine.stacks)
+        if total_pieces <= 30:
+            return True
+        return False
+
 
     def endgame_strategy(self, game_engine):
-        print("[DEBUG] Endgame strategy activated")
+
         best_combo = None
         best_score = float('-inf')
-        max_height = self.get_max_height(game_engine)
-        pawn_moves = [m for m in self.get_all_moves(game_engine, self.color) if m[0] == 'move_pion']
-        stack_moves = [m for m in self.get_all_moves(game_engine, self.color) if m[0] == 'stack_pieces']
-        print("[DEBUG] pawn_moves:", pawn_moves)
-        print("[DEBUG] stack_moves:", stack_moves)
-        for pawn in pawn_moves:
-            pawn_end = pawn[2]
-            for stack in stack_moves:
-                stack_end = stack[2]
-                stack_start = stack[1]
-                print(f"[DEBUG] Evaluating pawn {pawn} with stack {stack}")
-                if pawn_end == stack_start or pawn_end == stack_end:
-                    print(f"[DEBUG] Skipping invalid combo: {pawn} with {stack}")
-                    continue
-                if self.is_valid_combo(pawn, stack):
-                    undo_pawn = game_engine.apply_move(pawn)
-                    undo_stack = game_engine.apply_move(stack)
-                    if undo_pawn is not None and undo_stack is not None:
-                        score = self.endgame_evaluate(game_engine, max_height)
-                        if score > best_score:
-                            best_score = score
-                            best_combo = (pawn, stack)
-                    if undo_stack is not None:
-                        game_engine.undo_move(stack, undo_stack)
-                    if undo_pawn is not None:
-                        game_engine.undo_move(pawn, undo_pawn)
+        max_height = 5
+        move_pairs = self.get_all_move_pairs(game_engine, self.color)
+        for move_pair in move_pairs:
+            undo_infos = []
+            valid = True
+            for move in move_pair:
+                undo_info = game_engine.apply_move(move)
+                if undo_info is None:
+                    valid = False
+                    break
+                undo_infos.append((move, undo_info))
+            if valid:
+                score = self.endgame_evaluate(game_engine, max_height)
+                if score > best_score:
+                    best_score = score
+                    best_combo = tuple(move_pair)
+            for move, undo_info in reversed(undo_infos):
+                game_engine.undo_move(move, undo_info)
         if best_combo:
             return best_score, best_combo
-        move_pion = next((m for m in pawn_moves), None)
-        stack_piece = next((s for s in stack_moves), None)
-        if move_pion and stack_piece:
-            return 0, (move_pion, stack_piece)
-        return 0, None  # Aucun coup possible
+        return 0, None  
 
     def endgame_evaluate(self, game_engine, max_height):
         """Évaluation optimisée pour la fin de partie"""
         score = 0
-        current_max_height = self.get_max_height(game_engine)
+        current_max_height = 5
         
         for row in range(8):
             for col in range(8):
