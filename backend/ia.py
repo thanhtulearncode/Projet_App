@@ -577,7 +577,7 @@ class HardAI(MinMaxAI):
     Uses MinMax algorithm with deep depth (4) for advanced strategy
     """
     def __init__(self, color):
-        super().__init__(color, depth=6)
+        super().__init__(color, depth=4)
         self.difficulty = "Hard"
         print(f"[AI] Initialized {self.difficulty} AI for {color} (depth: {self.depth})")
 
