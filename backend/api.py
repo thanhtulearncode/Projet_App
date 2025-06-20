@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from game_engine import GameEngine
-from AI import GameAI
 from ia import AIFactory
 import random
 import os
