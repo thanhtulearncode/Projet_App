@@ -1,6 +1,4 @@
 from piece import *
-from Action import *
-from AI import GameAI
 from ia import MinMaxAI, RandomAI, AIFactory, EasyAI, MediumAI, HardAI
 
 class GameEngine:
