@@ -9,6 +9,6 @@
     }
   ],
   "env": {
-    "REACT_APP_API_URL": "https://wall-street-backend.onrender.com"
+    "REACT_APP_API_URL": "https://backend-wall-street.fly.dev/"
   }
 } 
