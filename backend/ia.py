@@ -118,7 +118,7 @@ class MinMaxAI:
                                 score += 8
                 # SPCs (Squares) mobility and blocking
                 if top_piece.name == 'Square':
-                    valid_spc_moves = game_engine.get_square_moves(row, col)
+                    valid_spc_moves = game_engine.get_square_moves(top_piece, row, col)
                     if valid_spc_moves:
                         score += 3
                     for end_pos in valid_spc_moves:
@@ -167,7 +167,7 @@ class MinMaxAI:
             if game_engine.board[row][col]:
                 top_piece = game_engine.board[row][col][-1]
                 if top_piece.name == 'Square':
-                    valid_moves = game_engine.get_square_moves(row, col)
+                    valid_moves = game_engine.get_square_moves(top_piece, row, col)
                     for end_pos in valid_moves:
                         new_height = len(game_engine.board[row][col]) + len(game_engine.board[end_pos[0]][end_pos[1]])
                         stack_pieces_moves.append(("stack_pieces", (row, col), end_pos, new_height))
@@ -235,7 +235,7 @@ class MinMaxAI:
                 if game_engine.board[row][col]:
                     top_piece = game_engine.board[row][col][-1]
                     if top_piece.name == 'Square':
-                        for end_pos in game_engine.get_square_moves(row, col):
+                        for end_pos in game_engine.get_square_moves(top_piece, row, col):
                             stack_move = ('stack_pieces', (row, col), end_pos)
                             undo_stack = game_engine.apply_move(stack_move)
                             if undo_stack is not None:
