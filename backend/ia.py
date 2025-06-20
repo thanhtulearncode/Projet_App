@@ -502,8 +502,8 @@ class RandomAI:
     def make_decision(self, game_engine):
         max_iterations = 50  # Prevent infinite loops
         iteration = 0
-        pawns = getattr(game_engine, 'pawns', [])
-        stacks = getattr(game_engine, 'stacks', [])
+        pawns = game_engine.pawns
+        stacks = game_engine.stacks
         while iteration < max_iterations:
             iteration += 1
             pion_moves = []
