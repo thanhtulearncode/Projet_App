@@ -158,7 +158,7 @@ class GameEngine:
             piece = self.board[x][y][-1]  # On lit sans retirer
             print(f"[LOG] Case ({x},{y}) contient : {piece.name} ({piece.color})")
             if piece.name == "Square":
-                valid_moves = self.get_square_moves(piece, x, y)
+                valid_moves = self.get_square_moves(x, y)
             elif piece.name == "Pawn":
                 valid_moves = self.get_pawn_moves(piece, x, y, long_range=None)
             print(f"[LOG] Coups valides pour {piece.name} ({piece.color}) en ({x},{y}) : {valid_moves}")
@@ -166,7 +166,7 @@ class GameEngine:
             print(f"[LOG] Case ({x},{y}) vide.")
         return valid_moves
 
-    def get_square_moves(self, piece, x, y):
+    def get_square_moves(self, x, y):
         directions = []
         for i in range(x + 1, 8):
             if self.board[i][y]:
@@ -473,7 +473,7 @@ class GameEngine:
             for y in range(8):
                 if self.board[x][y]:
                     if self.board[x][y][-1].name == 'Square':
-                        valid_moves = self.get_square_moves(self.board[x][y][-1], x, y)
+                        valid_moves = self.get_square_moves(x, y)
                         if valid_moves:
                             any_spc_can_move = True
         if not any_spc_can_move:

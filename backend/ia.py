@@ -106,6 +106,8 @@ class MinMaxAI:
                     score += len(moves) * 2
                     if len(moves) >= 3:
                         score += 5
+                    if any(game_engine.board[m[0]][m[1]] and len(game_engine[m[0]][m[1]]) > 2 for m in moves):
+                        score += 10
                 # Threats to opponent pawns
                 if top_piece.name == 'Pawn' and top_piece.color != self.color:
                     for dr, dc in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
@@ -116,21 +118,16 @@ class MinMaxAI:
                                 score += 8
                 # SPCs (Squares) mobility and blocking
                 if top_piece.name == 'Square':
-                    if not any(p.name == 'Pawn' for p in stack):
-                        valid_spc_moves = game_engine.get_valid_stack_moves(row, col)
-                        if valid_spc_moves:
-                            score += 3
-                        for end_pos in valid_spc_moves:
-                            dest_stack = game_engine.board[end_pos[0]][end_pos[1]]
-                            dest_height = len(dest_stack)
-                            if dest_height + height == 5:
-                                score += 8
-                    else:
-                        score -= 5  # Penalize blocked SPCs
-                # Discourage early tall stacks blocking own pawns
-                if height == 5 and top_piece.name == 'Square':
-                    if any(p.name == 'Pawn' and p.color == self.color for p in stack):
-                        score -= 20
+                    valid_spc_moves = game_engine.get_square_moves(row, col)
+                    if valid_spc_moves:
+                        score += 3
+                    for end_pos in valid_spc_moves:
+                        dest_stack = game_engine.board[end_pos[0]][end_pos[1]]
+                        dest_height = len(dest_stack)
+                        if dest_height + height == 5:
+                            score += 10
+                        elif dest_height + height < 5:
+                            score += dest_height + height
                 # Isolated pawns
                 if top_piece.name == 'Pawn' and top_piece.color == self.color:
                     if self.is_isolated(game_engine, row, col):
@@ -170,7 +167,7 @@ class MinMaxAI:
             if game_engine.board[row][col]:
                 top_piece = game_engine.board[row][col][-1]
                 if top_piece.name == 'Square':
-                    valid_moves = game_engine.get_valid_stack_moves(row, col)
+                    valid_moves = game_engine.get_square_moves(row, col)
                     for end_pos in valid_moves:
                         new_height = len(game_engine.board[row][col]) + len(game_engine.board[end_pos[0]][end_pos[1]])
                         stack_pieces_moves.append(("stack_pieces", (row, col), end_pos, new_height))
@@ -208,12 +205,12 @@ class MinMaxAI:
             found_valid = False
             pawn_end = pawn[2]
             for row, col in game_engine.stacks:
-                print(f"[DEBUG] Evaluating stack moves for pawn {pawn} at {row}, {col}")
+                #print(f"[DEBUG] Evaluating stack moves for pawn {pawn} at {row}, {col}")
                 if game_engine.board[row][col]:
                     top_piece = game_engine.board[row][col][-1]
                     if top_piece.name == 'Square' and (row, col) != pawn[2]:
                         for end_pos in game_engine.get_square_moves(top_piece,row, col):
-                            print(f"[DEBUG] Evaluating stack move: {end_pos} for pawn move {pawn}")
+                            #print(f"[DEBUG] Evaluating stack move: {end_pos} for pawn move {pawn}")
                             if end_pos == pawn_end or (row, col) == pawn_end:
                                 print(f"[DEBUG] Skipping invalid stack move: {end_pos} for pawn move {pawn}")
                                 continue
@@ -238,7 +235,7 @@ class MinMaxAI:
                 if game_engine.board[row][col]:
                     top_piece = game_engine.board[row][col][-1]
                     if top_piece.name == 'Square':
-                        for end_pos in game_engine.get_valid_stack_moves(row, col):
+                        for end_pos in game_engine.get_square_moves(row, col):
                             stack_move = ('stack_pieces', (row, col), end_pos)
                             undo_stack = game_engine.apply_move(stack_move)
                             if undo_stack is not None:
@@ -376,12 +373,12 @@ class MinMaxAI:
             print("AAAA")
             print(total_pieces)
             if depth >= 2:
-                if total_pieces <= 10:  # Late game - be thorough
-                    valid_move_pairs = valid_move_pairs[:15]
+                if total_pieces <= 50:  # Late game - be thorough
+                    valid_move_pairs = valid_move_pairs[:25]
                 elif total_pieces <= 75:  # Mid game - moderate
                     valid_move_pairs = valid_move_pairs[:20]
                 else:  # Early game - keep current optimization
-                    valid_move_pairs = valid_move_pairs[:4]
+                    valid_move_pairs = valid_move_pairs[:2]
             
             for move_pair in valid_move_pairs:
                 undo_infos = []
