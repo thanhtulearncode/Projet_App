@@ -180,32 +180,37 @@ class MinMaxAI:
     def is_valid_combo(self, pawn_move, stack_move):
         """Vérifie si une combinaison de coups est valide"""
         return (
-            pawn_move[2][0] == stack_move[1][0] and
-            pawn_move[2][1] == stack_move[1][1]
+            pawn_move[2] != stack_move[1] and
+            pawn_move[2] != stack_move[2]
         )
 
     def get_all_move_pairs(self, game_engine, color):
         pawn_moves = []
-        for row, col in getattr(game_engine, 'pawns', []):
+        for row, col in game_engine.pawns:
             if game_engine.board[row][col]:
                 top_piece = game_engine.board[row][col][-1]
                 if top_piece.name == 'Pawn' and top_piece.color == color:
                     for move in game_engine.get_pawn_moves(top_piece, row, col):
                         pawn_moves.append(('move_pion', (row, col), move))
         random.shuffle(pawn_moves)
-
+        print(f"[DEBUG] Found {(pawn_moves)} pawn moves for color {color}")
         pairs = []
         scored_pairs = []
         # Use apply/undo instead of clone for efficiency
         for pawn in pawn_moves:
             undo_pawn = game_engine.apply_move(pawn)
             found_valid = False
-            stack_moves = []
-            for row, col in getattr(game_engine, 'stacks', []):
+            pawn_end = pawn[2]
+            for row, col in game_engine.stacks:
+                print(f"[DEBUG] Evaluating stack moves for pawn {pawn} at {row}, {col}")
                 if game_engine.board[row][col]:
                     top_piece = game_engine.board[row][col][-1]
                     if top_piece.name == 'Square' and (row, col) != pawn[2]:
-                        for end_pos in game_engine.get_valid_stack_moves(row, col):
+                        for end_pos in game_engine.get_square_moves(top_piece,row, col):
+                            print(f"[DEBUG] Evaluating stack move: {end_pos} for pawn move {pawn}")
+                            if end_pos == pawn_end or (row, col) == pawn_end:
+                                print(f"[DEBUG] Skipping invalid stack move: {end_pos} for pawn move {pawn}")
+                                continue
                             stack_move = ('stack_pieces', (row, col), end_pos)
                             undo_stack = game_engine.apply_move(stack_move)
                             valid = True
@@ -282,6 +287,7 @@ class MinMaxAI:
         return pawn_count <= 4 or self.get_max_height(game_engine) >= 4
 
     def endgame_strategy(self, game_engine):
+        print("[DEBUG] Endgame strategy activated")
         best_combo = None
         best_score = float('-inf')
         max_height = self.get_max_height(game_engine)
@@ -290,7 +296,14 @@ class MinMaxAI:
         print("[DEBUG] pawn_moves:", pawn_moves)
         print("[DEBUG] stack_moves:", stack_moves)
         for pawn in pawn_moves:
+            pawn_end = pawn[2]
             for stack in stack_moves:
+                stack_end = stack[2]
+                stack_start = stack[1]
+                print(f"[DEBUG] Evaluating pawn {pawn} with stack {stack}")
+                if pawn_end == stack_start or pawn_end == stack_end:
+                    print(f"[DEBUG] Skipping invalid combo: {pawn} with {stack}")
+                    continue
                 if self.is_valid_combo(pawn, stack):
                     undo_pawn = game_engine.apply_move(pawn)
                     undo_stack = game_engine.apply_move(stack)
@@ -344,6 +357,7 @@ class MinMaxAI:
 
     def minimax(self, game, depth, maximizing_player, alpha, beta):
         """Algorithme MinMax avec élagage alpha-bêta et tables de transposition, utilisant des paires de coups"""
+        print("Minimax is used")
         game_hash = self.zobrist_hash(game)
         if game_hash in self.transposition_table:
             entry = self.transposition_table[game_hash]
@@ -520,20 +534,23 @@ class RandomAI:
             for i, j in stacks:
                 if game_engine.board[i][j]:
                     piece = game_engine.board[i][j][-1]
-                    if hasattr(piece, 'name') and piece.name == 'Square':
-                        valid_moves = game_engine.get_valid_stack_moves(i, j)
+                    if piece.name == 'Square':
+                        valid_moves = game_engine.get_square_moves(piece, i, j)
                         if valid_moves:
                             for end_pos in valid_moves:
                                 stack_moves.append(('stack_pieces', (i, j), end_pos))
             if not pion_moves and not stack_moves:
-                break
-            if pion_moves and stack_moves:
-                move = random.choice(pion_moves)
-                return [move, random.choice(stack_moves)]
-            if pion_moves:
-                return [random.choice(pion_moves)]
-            if stack_moves:
-                return [random.choice(stack_moves)]
+                pion_move = random.choice(pion_moves)
+                print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                for stack_move in stack_moves:
+                    if pion_move[2] != stack_move[1] and pion_move[2] != stack_move[2]:
+                        print(f"[RandomAI] Found valid move pair: {pion_move[2]}, {stack_move[1]}, {stack_move[2]}")
+                        return [pion_move, stack_move]
+                    else:
+                        continue
+                
+                               
+            
         return None
 
 # AI Difficulty Levels

@@ -89,7 +89,7 @@ def reset_game(request: Request):
         raise HTTPException(status_code=400, detail="Invalid query parameters")
     game = GameEngine(color_pair=colorPair, ai_difficulty=ai_difficulty, ai_color=ai_color)
     return {
-        
+        "board" : game.get_state(),
         "status": "Game reset",
         "ai_difficulty": ai_difficulty,
         "color_pair": colorPair,
@@ -219,13 +219,20 @@ def ai_move(data: dict = {}):
                 move_position = start_pos
                 move_destination = end_pos
             elif action_type == 'stack_pieces':
+                # Avoid using the captured destination as start or end for stack move
+                if captured_destination is not None and (
+                    (start_pos[0], start_pos[1]) == tuple(captured_destination) or
+                    (end_pos[0], end_pos[1]) == tuple(captured_destination)
+                ):
+                    print(f"Stack move {start_pos}->{end_pos} conflicts with captured destination {captured_destination}, skipping.")
+                    break
                 time.sleep(5)
                 success = game.stack_pieces(start_pos[0], start_pos[1], end_pos[0], end_pos[1])
                 if not success:
                     print(f"Échec du mouvement de pile: {start_pos} -> {end_pos}")
                     return {"success": False, "message": "Échec du coup AI"}
                 epc_posititon = start_pos
-                epc_destination = end_pos           
+                epc_destination = end_pos                     
             else:
                 print(f"Action inconnue: {action_type}")
                 print(f"Action: {action_type}, Start: {start_pos}, End: {end_pos}, Success: {success}")

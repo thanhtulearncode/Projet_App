@@ -58,7 +58,7 @@ const Game = ({ settings }) => {
   };
   const playerColors = getPlayerColors();
 
-  const handleAnimation = (lastPawnPosition, lastPawnDestination, lastEPCPosition, lastEPCDestination) => {
+  const handleAnimation = (lastPawnPosition, lastPawnDestination, lastEPCPosition=null, lastEPCDestination=null, capturedDestination=null) => {
     if (lastPawnPosition !== null) {
       setLastPawnPosition({row : lastPawnPosition[0],col: lastPawnPosition[1]});
     } else {
