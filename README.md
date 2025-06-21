@@ -36,7 +36,7 @@ pip install -r requirements.txt
 3. **Configurer le frontend (React) :**
 
 ```bash
-cd ../frontend
+cd frontend
 npm install
 ```
 
@@ -69,6 +69,7 @@ Projet_App/
 ├── backend/
 │   ├── api.py               # API FastAPI
 │   ├── game_engine.py       # Logique du jeu
+│   ├── game_engine.py       # L'IA
 │   ...
 │   └── requirements.txt
 │
@@ -106,5 +107,7 @@ Projet_App/
 - Algorithme MinMax avec élagage alpha-bêta
 
 ### Déploiement
+
+Ouvrir l’application sur [https://wall-street-game.vercel.app/](https://wall-street-game.vercel.app/)
 
 
