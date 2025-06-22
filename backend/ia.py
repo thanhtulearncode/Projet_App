@@ -36,17 +36,17 @@ class MinMaxAI:
         return max_height
 
     def get_position_value(self, row, col):
-        """Retourne la valeur positionnelle d'une case"""
-        # Centre plus important que les bords
+        #Amélioration : les pions préfèrent se déplacer droit
+        #plutôt qu'horizontalement, concentrés au centre
         center_value = [
-            [1, 1, 2, 2, 2, 2, 1, 1],
-            [1, 2, 3, 3, 3, 3, 2, 1],
-            [2, 3, 4, 4, 4, 4, 3, 2],
-            [2, 3, 4, 5, 5, 4, 3, 2],
-            [2, 3, 4, 5, 5, 4, 3, 2],
-            [2, 3, 4, 4, 4, 4, 3, 2],
-            [1, 2, 3, 3, 3, 3, 2, 1],
-            [1, 1, 2, 2, 2, 2, 1, 1]
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 1, 0, 1, 0, 1],
+            [1, 3, 1, 5, 1, 4, 1, 2],
+            [3, 4, 4, 5, 5, 4, 4, 3],
+            [3, 4, 4, 5, 5, 4, 4, 3],
+            [1, 3, 1, 5, 1, 4, 1, 2],
+            [0, 1, 0, 1, 0, 1, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0]
         ]
         return center_value[row][col] * 5
 
@@ -61,30 +61,34 @@ class MinMaxAI:
 
                 top_piece = stack[-1]
                 height = len(stack) if top_piece.name == 'Square' else len(stack) - 1
-                # 1. Main win condition: pawns on high stacks
+                #1. Condition de victoire principale: 
+                # Pions sur des piles élevées
                 if top_piece.name == 'Pawn':
                     if height == 5:
-                        bonus = 150
+                        bonus = 300
                     elif height == 4:
-                        bonus = 100
+                        bonus = 120
                     elif height == 3:
-                        bonus = 60
+                        bonus = 50
                     elif height == 2:
-                        bonus = 40
+                        bonus = 20
                     else:
                         bonus = 0
 
                     if top_piece.color == self.color:
-                        score += bonus
-                    
+                        score += bonus 
                     else:
                         score -= bonus
+                #Résultats pour seulement 1 facteur: score/depth2/1facteur.txt
+                
                 # 2. Valeur positionnelle (centre plus important)
                 position_value = self.get_position_value(row, col)
                 if top_piece.name == 'Pawn' and top_piece.color == self.color:
                     score += position_value
                 elif top_piece.name == 'Pawn':
                     score -= position_value
+                #Résultats pour seulement 2 facteur: score/depth2/2facteur.txt
+                """
                 # 2. Tactical/positional factors
                 # Mutual protection (adjacent friendly pawns)
                 if top_piece.name == 'Pawn' and top_piece.color == self.color:
@@ -135,6 +139,7 @@ class MinMaxAI:
                 if top_piece.name == 'Pawn' and top_piece.color == self.color:
                     if self.is_isolated(game_engine, row, col):
                         score -= 10
+                """
                 # Penalize illegal stacks
                 if height > 5:
                     score -= 1000
@@ -208,12 +213,12 @@ class MinMaxAI:
             found_valid = False
             pawn_end = pawn[2]
             for row, col in game_engine.stacks:
-                print(f"[DEBUG] Evaluating stack moves for pawn {pawn} at {row}, {col}")
+                #print(f"[DEBUG] Evaluating stack moves for pawn {pawn} at {row}, {col}")
                 if game_engine.board[row][col]:
                     top_piece = game_engine.board[row][col][-1]
                     if top_piece.name == 'Square' and (row, col) != pawn[2]:
                         for end_pos in game_engine.get_square_moves(top_piece,row, col):
-                            print(f"[DEBUG] Evaluating stack move: {end_pos} for pawn move {pawn}")
+                            #print(f"[DEBUG] Evaluating stack move: {end_pos} for pawn move {pawn}")
                             if end_pos == pawn_end or (row, col) == pawn_end:
                                 print(f"[DEBUG] Skipping invalid stack move: {end_pos} for pawn move {pawn}")
                                 continue
@@ -378,8 +383,8 @@ class MinMaxAI:
             if depth >= 2:
                 if total_pieces <= 10:  # Late game - be thorough
                     valid_move_pairs = valid_move_pairs[:15]
-                elif total_pieces <= 75:  # Mid game - moderate
-                    valid_move_pairs = valid_move_pairs[:20]
+                elif total_pieces <= 71:  # Mid game - moderate
+                    valid_move_pairs = valid_move_pairs[:10]
                 else:  # Early game - keep current optimization
                     valid_move_pairs = valid_move_pairs[:4]
             
@@ -484,6 +489,7 @@ class MinMaxAI:
     def make_decision(self, game_engine):
         try:
             score, move = self.minimax_search(game_engine, self.depth)
+            print(f"move: {move}, score: {score}")
             if not move:
                 print('[MinMaxAI] No move found by minimax, falling back to RandomAI')
                 random_ai = RandomAI(self.color)
