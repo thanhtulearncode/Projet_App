@@ -88,9 +88,8 @@ class MinMaxAI:
                 elif top_piece.name == 'Pawn':
                     score -= position_value
                 #Résultats pour seulement 2 facteur: score/depth2/2facteur.txt
-                """
-                # 2. Tactical/positional factors
-                # Mutual protection (adjacent friendly pawns)
+                
+                # 3. Mutual protection (adjacent friendly pawns)
                 if top_piece.name == 'Pawn' and top_piece.color == self.color:
                     for dr, dc in [(-1,0),(1,0),(0,-1),(0,1)]:
                         r, c = row + dr, col + dc
@@ -98,18 +97,20 @@ class MinMaxAI:
                             adj_stack = game_engine.board[r][c]
                             if adj_stack and adj_stack[-1].name == 'Pawn':
                                 if adj_stack[-1].color == self.color:
-                                    score += 5
+                                    score += 25
                                 else:
                                     # Offensive potential: can attack if in range
                                     long_range = sum(1 for p in stack if getattr(p, 'name', None) == 'Square')
                                     if max(abs(r-row), abs(c-col)) == long_range:
-                                        score += 10
-                # Mobility and open lanes
+                                        score += 50
+                
+                # 4. Mobility and open lanes
                 if top_piece.name == 'Pawn' and top_piece.color == self.color:
                     moves = game_engine.get_pawn_moves(top_piece, row, col)
                     score += len(moves) * 2
                     if len(moves) >= 3:
                         score += 5
+                """
                 # Threats to opponent pawns
                 if top_piece.name == 'Pawn' and top_piece.color != self.color:
                     for dr, dc in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
