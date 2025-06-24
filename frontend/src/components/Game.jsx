@@ -340,6 +340,7 @@ const Game = ({ settings }) => {
           setGamePhase('move_epc');
           updateBoard(result.board, 'move_epc', currentPlayer);
           handleAnimation(selectedPiece, { row, col }, null, null);
+          await checkGameOver(); 
         }
       } catch (error) {
         setMessage('Erreur lors de la capture');
@@ -369,6 +370,7 @@ const Game = ({ settings }) => {
           setGamePhase('move_epc');
           updateBoard(result.board, 'move_epc', currentPlayer);
           handleAnimation(selectedPiece, { row, col }, null, null);
+          await checkGameOver(); 
         } else {
           setMessage('Mouvement invalide');
         }
@@ -403,6 +405,7 @@ const Game = ({ settings }) => {
         setGamePhase('move_epc');
         updateBoard(result.board, 'move_epc', currentPlayer);
         handleAnimation(pendingCaptured.from, pendingCaptured.to, null, null);
+        await checkGameOver(); 
       } else {
         setMessage('Erreur lors de la capture');
       }

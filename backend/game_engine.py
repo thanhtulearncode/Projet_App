@@ -1,5 +1,5 @@
 from piece import *
-from ia import MinMaxAI, RandomAI, AIFactory, EasyAI, MediumAI, HardAI
+from ia import AIFactory
 
 class GameEngine:
     def __init__(self, color_pair='black-white', ai_difficulty='medium', ai_color=None):
@@ -40,12 +40,7 @@ class GameEngine:
                     self.stacks.add((row, col))
 
     def set_ai_difficulty(self, difficulty):
-        """
-        Change the AI difficulty level
-        
-        Args:
-            difficulty (str): 'easy', 'medium', or 'hard'
-        """
+        """Change the AI difficulty level"""
         self.ai_difficulty = difficulty
         color1, color2 = self.get_color_pair()
         self.ai = AIFactory.create_ai(difficulty, color2)
@@ -236,7 +231,7 @@ class GameEngine:
                 steps += 1
                 #print(steps)
         return directions
-
+    
     def move_piece(self, start_row, start_col, end_row, end_col):
         # Vérifier qu'il y a une pièce à la position de départ
         if not self.board[start_row][start_col]:
@@ -257,7 +252,7 @@ class GameEngine:
         color1, color2 = self.get_color_pair()
         self.current_player = color2 if self.current_player == color1 else color1
         return True, captured
-
+    
     def get_valid_stack_moves(self, src_x, src_y):
         """Retourne les cases cibles valides pour empiler depuis (src_x, src_y) selon la logique de get_square_moves"""
         if not self.board[src_x][src_y]:

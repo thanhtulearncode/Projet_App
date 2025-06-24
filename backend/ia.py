@@ -89,58 +89,79 @@ class MinMaxAI:
                     score -= position_value
                 #Résultats pour seulement 2 facteur: score/depth2/2facteur.txt
                 
-                # 3. Mutual protection (adjacent friendly pawns)
+                # 3. Mutual protection (adjacent friendly pawns) and Attack potential
                 if top_piece.name == 'Pawn' and top_piece.color == self.color:
+                    long_range = len(stack) - 1
                     for dr, dc in [(-1,0),(1,0),(0,-1),(0,1)]:
                         r, c = row + dr, col + dc
-                        if 0 <= r < 8 and 0 <= c < 8:
-                            adj_stack = game_engine.board[r][c]
-                            if adj_stack and adj_stack[-1].name == 'Pawn':
-                                if adj_stack[-1].color == self.color:
-                                    score += 25
-                                else:
-                                    # Offensive potential: can attack if in range
-                                    long_range = sum(1 for p in stack if getattr(p, 'name', None) == 'Square')
-                                    if max(abs(r-row), abs(c-col)) == long_range:
-                                        score += 50
+                        while 0 <= r < 8 and 0 <= c < 8:
+                            if not game_engine.board[r][c]:
+                                r += dr
+                                c += dc
+                                continue
+                            else:
+                                for i in range(long_range):
+                                    new_row = r + i * dr
+                                    new_col = c + i * dc
+                                    if 0 <= new_row < 8 and 0 <= new_col < 8:
+                                        target_stack = game_engine.board[new_row][new_col]
+                                        # Mutual protection
+                                        if target_stack and target_stack[-1].name == 'Pawn' and target_stack[-1].color == self.color:
+                                            long_range2 = len(target_stack) - 1
+                                            if long_range2 == i + 1:
+                                                score += 50 # pawn is protected own pawn
+                                                if long_range >= 4:
+                                                    score += 100
+                                            # After this state, pawn loses the initiative (opponent's turn)
+                                            # so the bonus points are only half.
+                                            if long_range == i + 1:
+                                                score += 25 # pawn is protecting by own pawn
+                                                if long_range2 >= 4:
+                                                    score += 50
+                                        # Attack potential
+                                        if target_stack and target_stack[-1].name == 'Pawn' and target_stack[-1].color != self.color:
+                                            long_range2 = len(target_stack) - 1
+                                            # After this state, pawn loses the initiative (opponent's turn)
+                                            # so the bonus points are only half.
+                                            if long_range == i + 1:
+                                                score += 25 #  Attacking opponent's pawn
+                                                if long_range2 >= 4:
+                                                    score += 50
+                                            # Dangerous because after this state is the opponent's turn
+                                            if long_range2 == i + 1:
+                                                score -= 100 # Penalize threats to own pawns
+                                                if long_range >= 4:
+                                                    score -= 300
+                                            break
+                                break        
                 
                 # 4. Mobility and open lanes
                 if top_piece.name == 'Pawn' and top_piece.color == self.color:
                     moves = game_engine.get_pawn_moves(top_piece, row, col)
-                    score += len(moves) * 2
+                    score += len(moves) * 5
                     if len(moves) >= 3:
-                        score += 5
-                """
-                # Threats to opponent pawns
-                if top_piece.name == 'Pawn' and top_piece.color != self.color:
-                    for dr, dc in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
-                        r, c = row + dr, col + dc
-                        if 0 <= r < 8 and 0 <= c < 8:
-                            adj_stack = game_engine.board[r][c]
-                            if adj_stack and adj_stack[-1].name == 'Pawn' and adj_stack[-1].color == self.color:
-                                score += 8
-                # SPCs (Squares) mobility and blocking
+                        score += 10
+            
+                # EPCs (Squares) mobility and blocking
                 if top_piece.name == 'Square':
-                    if not any(p.name == 'Pawn' for p in stack):
-                        valid_spc_moves = game_engine.get_valid_stack_moves(row, col)
-                        if valid_spc_moves:
-                            score += 3
-                        for end_pos in valid_spc_moves:
+                    valid_epc_moves = game_engine.get_valid_stack_moves(row, col)
+                    if valid_epc_moves:
+                        score += 10
+                        for end_pos in valid_epc_moves:
                             dest_stack = game_engine.board[end_pos[0]][end_pos[1]]
                             dest_height = len(dest_stack)
+                            if dest_height + height >= 3:
+                                score += 50
                             if dest_height + height == 5:
-                                score += 8
+                                score += 100
                     else:
-                        score -= 5  # Penalize blocked SPCs
-                # Discourage early tall stacks blocking own pawns
-                if height == 5 and top_piece.name == 'Square':
-                    if any(p.name == 'Pawn' and p.color == self.color for p in stack):
-                        score -= 20
+                        score -= 10
+
                 # Isolated pawns
                 if top_piece.name == 'Pawn' and top_piece.color == self.color:
                     if self.is_isolated(game_engine, row, col):
-                        score -= 10
-                """
+                        score -= 50
+
                 # Penalize illegal stacks
                 if height > 5:
                     score -= 1000
@@ -495,6 +516,7 @@ class MinMaxAI:
                 print('[MinMaxAI] No move found by minimax, falling back to RandomAI')
                 random_ai = RandomAI(self.color)
                 move = random_ai.make_decision(game_engine)
+                return move if move else []
             if isinstance(move, (list, tuple)):
                 return list(move)
             return []
