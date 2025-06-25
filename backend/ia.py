@@ -61,7 +61,8 @@ class MinMaxAI:
 
                 top_piece = stack[-1]
                 height = len(stack) if top_piece.name == 'Square' else len(stack) - 1
-                #1. Condition de victoire principale: 
+                
+                # 1. Condition de victoire principale :
                 # Pions sur des piles élevées
                 if top_piece.name == 'Pawn':
                     if height == 5:
@@ -79,17 +80,17 @@ class MinMaxAI:
                         score += bonus 
                     else:
                         score -= bonus
-                #Résultats pour seulement 1 facteur: score/depth2/1facteur.txt
+                # Résultats avec uniquement ce facteur : score/depth2/1facteur.txt
                 
-                # 2. Valeur positionnelle (centre plus important)
+                # 2. Valeur positionnelle (le centre a plus de valeur)
                 position_value = self.get_position_value(row, col)
                 if top_piece.name == 'Pawn' and top_piece.color == self.color:
                     score += position_value
                 elif top_piece.name == 'Pawn':
                     score -= position_value
-                #Résultats pour seulement 2 facteur: score/depth2/2facteur.txt
+                # Résultats avec deux facteurs : score/depth2/2facteur.txt
                 
-                # 3. Mutual protection (adjacent friendly pawns) and Attack potential
+                # 3. Protection mutuelle (pions amis adjacents) et potentiel d’attaque
                 if top_piece.name == 'Pawn' and top_piece.color == self.color:
                     long_range = len(stack) - 1
                     for dr, dc in [(-1,0),(1,0),(0,-1),(0,1)]:
@@ -105,44 +106,44 @@ class MinMaxAI:
                                     new_col = c + i * dc
                                     if 0 <= new_row < 8 and 0 <= new_col < 8:
                                         target_stack = game_engine.board[new_row][new_col]
-                                        # Mutual protection
+                                        # Protection mutuelle
                                         if target_stack and target_stack[-1].name == 'Pawn' and target_stack[-1].color == self.color:
                                             long_range2 = len(target_stack) - 1
                                             if long_range2 == i + 1:
-                                                score += 50 # pawn is protected own pawn
+                                                score += 50  # le pion est protégé par un pion ami
                                                 if long_range >= 4:
                                                     score += 100
-                                            # After this state, pawn loses the initiative (opponent's turn)
-                                            # so the bonus points are only half.
+                                            # Après cet état, le pion perd l’initiative (c’est au tour de l’adversaire)
+                                            # donc les points bonus sont réduits de moitié
                                             if long_range == i + 1:
-                                                score += 25 # pawn is protecting by own pawn
+                                                score += 25  # le pion protège un pion ami
                                                 if long_range2 >= 4:
                                                     score += 50
-                                        # Attack potential
+                                        # Potentiel d’attaque
                                         if target_stack and target_stack[-1].name == 'Pawn' and target_stack[-1].color != self.color:
                                             long_range2 = len(target_stack) - 1
-                                            # After this state, pawn loses the initiative (opponent's turn)
-                                            # so the bonus points are only half.
+                                            # Après cet état, le pion perd l’initiative (c’est au tour de l’adversaire)
+                                            # donc les points bonus sont réduits de moitié
                                             if long_range == i + 1:
-                                                score += 25 #  Attacking opponent's pawn
+                                                score += 25  # attaque un pion adverse
                                                 if long_range2 >= 4:
                                                     score += 50
-                                            # Dangerous because after this state is the opponent's turn
+                                            # Dangereux car c’est ensuite le tour de l’adversaire
                                             if long_range2 == i + 1:
-                                                score -= 100 # Penalize threats to own pawns
+                                                score -= 100  # pénalité si menace sur un pion ami
                                                 if long_range >= 4:
                                                     score -= 300
                                             break
                                 break        
-                
-                # 4. Mobility and open lanes
+
+                # 4. Mobilité et colonnes ouvertes
                 if top_piece.name == 'Pawn' and top_piece.color == self.color:
                     moves = game_engine.get_pawn_moves(top_piece, row, col)
                     score += len(moves) * 5
                     if len(moves) >= 3:
                         score += 10
-            
-                # EPCs (Squares) mobility and blocking
+                
+                # Mobilité des EPCs (Squares) et blocage
                 if top_piece.name == 'Square':
                     valid_epc_moves = game_engine.get_valid_stack_moves(row, col)
                     if valid_epc_moves:
@@ -157,16 +158,17 @@ class MinMaxAI:
                     else:
                         score -= 10
 
-                # Isolated pawns
+                # Pions isolés
                 if top_piece.name == 'Pawn' and top_piece.color == self.color:
                     if self.is_isolated(game_engine, row, col):
                         score -= 50
 
-                # Penalize illegal stacks
+                # Pénalité pour piles illégales
                 if height > 5:
                     score -= 1000
 
         return score
+
 
 
     def is_isolated(self, game_engine, row, col):
